@@ -79,10 +79,27 @@ namespace PrintScreenApp
         // ??????
         private void button1_Click(object sender, EventArgs e)
         {
-            var image = _screenshotHelper.CaptureRegion();
-            if (image != null)
+            // ??????
+            this.Hide();
+            
+            // ?????50??
+            System.Threading.Thread.Sleep(50);
+            
+            // ??????????
+            var regionForm = new RegionSelectorForm();
+            var result = regionForm.ShowDialog();
+            
+            // ??????
+            this.Show();
+            
+            if (result == DialogResult.OK)
             {
-                MessageBox.Show("???????", "??", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                var image = regionForm.CapturedImage;
+                if (image != null)
+                {
+                    _screenshotHelper.SaveCapturedImage(image);
+                    MessageBox.Show("???????", "??", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
         }
 

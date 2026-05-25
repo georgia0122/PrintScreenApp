@@ -28,6 +28,15 @@ namespace PrintScreenApp
         }
 
         /// <summary>
+        /// ?????????????????????
+        /// </summary>
+        /// <param name="image">?????Bitmap</param>
+        public void SaveCapturedImage(Bitmap image)
+        {
+            _capturedImage = image;
+        }
+
+        /// <summary>
         /// ????????
         /// </summary>
         /// <param name="filePath">???????</param>
