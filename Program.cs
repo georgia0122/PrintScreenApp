@@ -10,8 +10,6 @@ namespace PrintScreenApp
         [STAThread]
         static void Main()
         {
-            // ??UTF-8???????????
-            Console.OutputEncoding = Encoding.UTF8;
 
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.

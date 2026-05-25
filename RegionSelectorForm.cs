@@ -5,7 +5,7 @@ using System.Windows.Forms;
 namespace PrintScreenApp
 {
     /// <summary>
-    /// 区域选择器窗体 - 全屏遮罩截图
+    /// Region selector form - Full screen overlay screenshot
     /// </summary>
     public partial class RegionSelectorForm : Form
     {
@@ -27,7 +27,7 @@ namespace PrintScreenApp
         }
 
         /// <summary>
-        /// 配置窗体属性为全屏遮罩模式
+        /// Configure form properties for full screen overlay mode
         /// </summary>
         private void ConfigureForm()
         {
@@ -41,7 +41,7 @@ namespace PrintScreenApp
         }
 
         /// <summary>
-        /// 捕获全屏截图
+        /// Capture full screen screenshot
         /// </summary>
         private void CaptureFullScreen()
         {
@@ -56,7 +56,7 @@ namespace PrintScreenApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"截图失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Screenshot failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.DialogResult = DialogResult.Cancel;
                 this.Close();
             }
@@ -109,7 +109,7 @@ namespace PrintScreenApp
         }
 
         /// <summary>
-        /// 从选定区域捕获图像
+        /// Capture image from selected region
         /// </summary>
         private void CaptureSelection()
         {
@@ -123,7 +123,7 @@ namespace PrintScreenApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"保存截图失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Failed to save screenshot: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -135,35 +135,35 @@ namespace PrintScreenApp
             {
                 try
                 {
-                    // 绘制遮罩层（黑色半透明）
+                    // Draw mask layer (semi-transparent black)
                     DrawMaskLayer(e);
 
-                    // 在选定区域内绘制原始截图（完全不透明）
+                    // Draw original screenshot in selected area (fully opaque)
                     DrawHighlightedRegion(e);
 
-                    // 绘制选择框边框
+                    // Draw selection border
                     DrawSelectionBorder(e);
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"绘制错误: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Drawing error: {ex.Message}");
                 }
             }
         }
 
         /// <summary>
-        /// 绘制黑色遮罩层
+        /// Draw black mask layer
         /// </summary>
         private void DrawMaskLayer(PaintEventArgs e)
         {
-            using (Brush maskBrush = new SolidBrush(Color.FromArgb(77, 0, 0, 0))) // 30% 透明度的黑色
+            using (Brush maskBrush = new SolidBrush(Color.FromArgb(77, 0, 0, 0))) // 30% transparent black
             {
                 e.Graphics.FillRectangle(maskBrush, this.ClientRectangle);
             }
         }
 
         /// <summary>
-        /// 在选定矩形区域绘制原始截图（高亮显示）
+        /// Draw original screenshot in selected rectangle area (highlight)
         /// </summary>
         private void DrawHighlightedRegion(PaintEventArgs e)
         {
@@ -178,7 +178,7 @@ namespace PrintScreenApp
         }
 
         /// <summary>
-        /// 绘制选择框边框
+        /// Draw selection border
         /// </summary>
         private void DrawSelectionBorder(PaintEventArgs e)
         {
@@ -187,40 +187,40 @@ namespace PrintScreenApp
                 e.Graphics.DrawRectangle(borderPen, _selectionRectangle);
             }
 
-            // 绘制四个角的标记
+            // Draw corner markers
             DrawCornerMarkers(e);
 
-            // 绘制尺寸信息
+            // Draw size information
             DrawSizeInfo(e);
         }
 
         /// <summary>
-        /// 绘制选择框四个角的标记
+        /// Draw corner markers for selection frame
         /// </summary>
         private void DrawCornerMarkers(PaintEventArgs e)
         {
             const int markerSize = 6;
             using (Brush markerBrush = new SolidBrush(Color.FromArgb(255, 0, 120, 215)))
             {
-                // 左上
+                // Top-left
                 e.Graphics.FillRectangle(markerBrush,
                     _selectionRectangle.Left - markerSize / 2,
                     _selectionRectangle.Top - markerSize / 2,
                     markerSize, markerSize);
 
-                // 右上
+                // Top-right
                 e.Graphics.FillRectangle(markerBrush,
                     _selectionRectangle.Right - markerSize / 2,
                     _selectionRectangle.Top - markerSize / 2,
                     markerSize, markerSize);
 
-                // 左下
+                // Bottom-left
                 e.Graphics.FillRectangle(markerBrush,
                     _selectionRectangle.Left - markerSize / 2,
                     _selectionRectangle.Bottom - markerSize / 2,
                     markerSize, markerSize);
 
-                // 右下
+                // Bottom-right
                 e.Graphics.FillRectangle(markerBrush,
                     _selectionRectangle.Right - markerSize / 2,
                     _selectionRectangle.Bottom - markerSize / 2,
@@ -229,24 +229,24 @@ namespace PrintScreenApp
         }
 
         /// <summary>
-        /// 绘制选择区域的尺寸信息
+        /// Draw size information of selection area
         /// </summary>
         private void DrawSizeInfo(PaintEventArgs e)
         {
             string sizeText = $"{_selectionRectangle.Width} × {_selectionRectangle.Height}";
-            using (Font infoFont = new Font("微软雅黑", 12, FontStyle.Bold))
+            using (Font infoFont = new Font("Segoe UI", 12, FontStyle.Bold))
             using (Brush textBrush = new SolidBrush(Color.White))
             using (Brush shadowBrush = new SolidBrush(Color.Black))
             {
-                // 计算文本位置（在选框下方中央）
+                // Calculate text position (center below selection box)
                 SizeF textSize = e.Graphics.MeasureString(sizeText, infoFont);
                 float textX = _selectionRectangle.Left + (_selectionRectangle.Width - textSize.Width) / 2;
                 float textY = _selectionRectangle.Bottom + 10;
 
-                // 绘制阴影（偏移1像素）
+                // Draw shadow (offset by 1 pixel)
                 e.Graphics.DrawString(sizeText, infoFont, shadowBrush, textX + 1, textY + 1);
 
-                // 绘制文本
+                // Draw text
                 e.Graphics.DrawString(sizeText, infoFont, textBrush, textX, textY);
             }
         }
@@ -262,7 +262,7 @@ namespace PrintScreenApp
         }
 
         /// <summary>
-        /// 根据两点计算矩形
+        /// Calculate rectangle from two points
         /// </summary>
         private Rectangle GetRectangleFromPoints(Point p1, Point p2)
         {

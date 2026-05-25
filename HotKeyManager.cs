@@ -5,12 +5,12 @@ using System.Windows.Forms;
 namespace PrintScreenApp
 {
     /// <summary>
-    /// 全局快捷键管理类，使用 Windows API 实现
+    /// Global hotkey manager class using Windows API
     /// </summary>
     public class HotKeyManager : IDisposable
     {
         /// <summary>
-        /// 快捷键常用修饰符
+        /// Common hotkey modifier flags
         /// </summary>
         [Flags]
         public enum KeyModifiers
@@ -35,31 +35,31 @@ namespace PrintScreenApp
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
         /// <summary>
-        /// 初始化HotKeyManager
+        /// Initialize HotKeyManager
         /// </summary>
-        /// <param name="windowHandle">要注册快捷键的窗口句柄</param>
+        /// <param name="windowHandle">Window handle to register hotkey</param>
         public HotKeyManager(IntPtr windowHandle)
         {
             if (windowHandle == IntPtr.Zero)
             {
-                throw new ArgumentException("窗口句柄不能为空", nameof(windowHandle));
+                throw new ArgumentException("Window handle cannot be null", nameof(windowHandle));
             }
             _handle = windowHandle;
         }
 
         /// <summary>
-        /// 注册全局快捷键
+        /// Register global hotkey
         /// </summary>
-        /// <param name="modifiers">修饰符（Ctrl, Alt, Shift, Win 的组合）</param>
-        /// <param name="keyCode">虚拟键代码</param>
-        /// <returns>快捷键ID</returns>
+        /// <param name="modifiers">Modifiers (combination of Ctrl, Alt, Shift, Win)</param>
+        /// <param name="keyCode">Virtual key code</param>
+        /// <returns>Hotkey ID</returns>
         public int Register(KeyModifiers modifiers, Keys keyCode)
         {
             ThrowIfDisposed();
 
             if (_isRegistered)
             {
-                throw new InvalidOperationException("快捷键已注册，请先注销后再注册新的快捷键");
+                throw new InvalidOperationException("Hotkey is already registered. Please unregister first before registering a new one.");
             }
 
             try
@@ -73,8 +73,8 @@ namespace PrintScreenApp
                 {
                     int errorCode = Marshal.GetLastWin32Error();
                     throw new InvalidOperationException(
-                        $"注册快捷键失败。错误代码: {errorCode}。" +
-                        "可能原因：快捷键已被其他应用程序占用，或窗口句柄无效。");
+                        $"Failed to register hotkey. Error code: {errorCode}. " +
+                        "Possible reasons: Hotkey is already used by another application or window handle is invalid.");
                 }
 
                 _isRegistered = true;
@@ -83,12 +83,12 @@ namespace PrintScreenApp
             catch (Exception ex)
             {
                 throw new InvalidOperationException(
-                    $"注册快捷键时出现异常: {ex.Message}", ex);
+                    $"Exception occurred while registering hotkey: {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// 注销快捷键
+        /// Unregister hotkey
         /// </summary>
         public void Unregister()
         {
@@ -105,19 +105,19 @@ namespace PrintScreenApp
                 {
                     int errorCode = Marshal.GetLastWin32Error();
                     throw new InvalidOperationException(
-                        $"注销快捷键失败。错误代码: {errorCode}");
+                        $"Failed to unregister hotkey. Error code: {errorCode}");
                 }
 
                 _isRegistered = false;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"注销快捷键时出现异常: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Exception occurred while unregistering hotkey: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// 判断快捷键ID是否为当前管理器注册的快捷键
+        /// Check if hotkey ID is the one registered by this manager
         /// </summary>
         public bool IsHotKeyMessage(Message message)
         {
@@ -125,12 +125,12 @@ namespace PrintScreenApp
         }
 
         /// <summary>
-        /// 获取快捷键是否已注册
+        /// Check if hotkey is registered
         /// </summary>
         public bool IsRegistered => _isRegistered;
 
         /// <summary>
-        /// 清理资源
+        /// Clean up resources
         /// </summary>
         public void Dispose()
         {

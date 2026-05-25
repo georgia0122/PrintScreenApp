@@ -22,7 +22,7 @@ namespace PrintScreenApp
         }
 
         /// <summary>
-        /// ?????????Ctrl + Alt + A?
+        /// Initialize hotkey: Ctrl + Alt + A
         /// </summary>
         private void InitializeHotKey()
         {
@@ -35,15 +35,15 @@ namespace PrintScreenApp
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    $"???????: {ex.Message}\n\n??????????????????????????",
-                    "???????",
+                    $"Hotkey registration failed: {ex.Message}\n\nPlease restart the application.",
+                    "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
             }
         }
 
         /// <summary>
-        /// ??WndProc????????
+        /// Intercept WndProc messages for hotkey handling
         /// </summary>
         protected override void WndProc(ref Message message)
         {
@@ -55,7 +55,7 @@ namespace PrintScreenApp
         }
 
         /// <summary>
-        /// ???????
+        /// Show or activate the main form
         /// </summary>
         private void ShowOrActivate()
         {
@@ -68,7 +68,7 @@ namespace PrintScreenApp
         }
 
         /// <summary>
-        /// ??????????
+        /// Cleanup on form closing
         /// </summary>
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
@@ -76,20 +76,23 @@ namespace PrintScreenApp
             base.OnFormClosing(e);
         }
 
-        // ??????
+        // Region Screenshot
         private void button1_Click(object sender, EventArgs e)
         {
-            // ??????
+            // Hide main window
             this.Hide();
             
-            // ?????50??
-            System.Threading.Thread.Sleep(50);
+            // Process pending UI messages
+            Application.DoEvents();
             
-            // ??????????
+            // Wait 200ms to ensure window is completely hidden
+            System.Threading.Thread.Sleep(200);
+            
+            // Show region selector
             var regionForm = new RegionSelectorForm();
             var result = regionForm.ShowDialog();
             
-            // ??????
+            // Show main window
             this.Show();
             
             if (result == DialogResult.OK)
@@ -98,17 +101,17 @@ namespace PrintScreenApp
                 if (image != null)
                 {
                     _screenshotHelper.SaveCapturedImage(image);
-                    MessageBox.Show("???????", "??", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Screenshot captured successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
         }
 
-        // ??????
+        // Save Screenshot
         private void button2_Click(object sender, EventArgs e)
         {
             using (SaveFileDialog sfd = new SaveFileDialog())
             {
-                sfd.Filter = "PNG ??|*.png|JPEG ??|*.jpg|????|*.*";
+                sfd.Filter = "PNG Files|*.png|JPEG Files|*.jpg|All Files|*.*";
                 sfd.FileName = $"Screenshot_{DateTime.Now:yyyyMMdd_HHmmss}";
                 sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
                 if (sfd.ShowDialog() == DialogResult.OK)
@@ -118,14 +121,14 @@ namespace PrintScreenApp
             }
         }
 
-        // ????????
+        // Copy to Clipboard
         private void button3_Click(object sender, EventArgs e)
         {
             _screenshotHelper.CopyToClipboard();
         }
 
         /// <summary>
-        /// ?????? - ????
+        /// Mouse enter - highlight button
         /// </summary>
         private void Button_MouseEnter(object sender, EventArgs e)
         {
@@ -136,13 +139,13 @@ namespace PrintScreenApp
         }
 
         /// <summary>
-        /// ?????? - ????
+        /// Mouse leave - restore button color
         /// </summary>
         private void Button_MouseLeave(object sender, EventArgs e)
         {
             if (sender is Button btn)
             {
-                // ??????
+                // Reset button colors
                 if (btn.Name == "button1")
                     btn.BackColor = Color.FromArgb(0, 120, 212);
                 else if (btn.Name == "button2")
