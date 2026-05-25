@@ -1,0 +1,16 @@
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\bin\Debug\net8.0-windows\PrintScreenApp.exe
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\bin\Debug\net8.0-windows\PrintScreenApp.deps.json
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\bin\Debug\net8.0-windows\PrintScreenApp.runtimeconfig.json
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\bin\Debug\net8.0-windows\PrintScreenApp.dll
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\bin\Debug\net8.0-windows\PrintScreenApp.pdb
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\obj\Debug\net8.0-windows\PrintScreenApp.Form1.resources
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\obj\Debug\net8.0-windows\PrintScreenApp.csproj.GenerateResource.cache
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\obj\Debug\net8.0-windows\PrintScreenApp.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\obj\Debug\net8.0-windows\PrintScreenApp.AssemblyInfoInputs.cache
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\obj\Debug\net8.0-windows\PrintScreenApp.AssemblyInfo.cs
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\obj\Debug\net8.0-windows\PrintScreenApp.csproj.CoreCompileInputs.cache
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\obj\Debug\net8.0-windows\PrintScreenApp.dll
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\obj\Debug\net8.0-windows\refint\PrintScreenApp.dll
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\obj\Debug\net8.0-windows\PrintScreenApp.pdb
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\obj\Debug\net8.0-windows\PrintScreenApp.genruntimeconfig.cache
+C:\Users\yoyo\source\repos\PrintScreenApp\PrintScreenApp\obj\Debug\net8.0-windows\ref\PrintScreenApp.dll

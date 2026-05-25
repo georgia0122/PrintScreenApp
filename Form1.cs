@@ -1,0 +1,138 @@
+using System;
+using System.Drawing;
+using System.IO;
+using System.Windows.Forms;
+
+namespace PrintScreenApp
+{
+    public partial class Form1 : Form
+    {
+        private ScreenshotHelper _screenshotHelper;
+        private HotKeyManager _hotKeyManager;
+
+        public Form1()
+        {
+            InitializeComponent();
+            _screenshotHelper = new ScreenshotHelper();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            InitializeHotKey();
+        }
+
+        /// <summary>
+        /// ?????????Ctrl + Alt + A?
+        /// </summary>
+        private void InitializeHotKey()
+        {
+            try
+            {
+                _hotKeyManager = new HotKeyManager(Handle);
+                var modifiers = HotKeyManager.KeyModifiers.Ctrl | HotKeyManager.KeyModifiers.Alt;
+                _hotKeyManager.Register(modifiers, Keys.A);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"???????: {ex.Message}\n\n??????????????????????????",
+                    "???????",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+        }
+
+        /// <summary>
+        /// ??WndProc????????
+        /// </summary>
+        protected override void WndProc(ref Message message)
+        {
+            if (_hotKeyManager != null && _hotKeyManager.IsHotKeyMessage(message))
+            {
+                ShowOrActivate();
+            }
+            base.WndProc(ref message);
+        }
+
+        /// <summary>
+        /// ???????
+        /// </summary>
+        private void ShowOrActivate()
+        {
+            if (WindowState == FormWindowState.Minimized)
+            {
+                WindowState = FormWindowState.Normal;
+            }
+            Activate();
+            BringToFront();
+        }
+
+        /// <summary>
+        /// ??????????
+        /// </summary>
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            _hotKeyManager?.Dispose();
+            base.OnFormClosing(e);
+        }
+
+        // ??????
+        private void button1_Click(object sender, EventArgs e)
+        {
+            var image = _screenshotHelper.CaptureRegion();
+            if (image != null)
+            {
+                MessageBox.Show("???????", "??", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        // ??????
+        private void button2_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "PNG ??|*.png|JPEG ??|*.jpg|????|*.*";
+                sfd.FileName = $"Screenshot_{DateTime.Now:yyyyMMdd_HHmmss}";
+                sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    _screenshotHelper.SaveToFile(sfd.FileName);
+                }
+            }
+        }
+
+        // ????????
+        private void button3_Click(object sender, EventArgs e)
+        {
+            _screenshotHelper.CopyToClipboard();
+        }
+
+        /// <summary>
+        /// ?????? - ????
+        /// </summary>
+        private void Button_MouseEnter(object sender, EventArgs e)
+        {
+            if (sender is Button btn)
+            {
+                btn.BackColor = ControlPaint.Light(btn.BackColor, 0.2f);
+            }
+        }
+
+        /// <summary>
+        /// ?????? - ????
+        /// </summary>
+        private void Button_MouseLeave(object sender, EventArgs e)
+        {
+            if (sender is Button btn)
+            {
+                // ??????
+                if (btn.Name == "button1")
+                    btn.BackColor = Color.FromArgb(0, 120, 212);
+                else if (btn.Name == "button2")
+                    btn.BackColor = Color.FromArgb(107, 105, 214);
+                else if (btn.Name == "button3")
+                    btn.BackColor = Color.FromArgb(59, 185, 72);
+            }
+        }
+    }
+}
