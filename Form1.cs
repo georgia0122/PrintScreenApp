@@ -7,8 +7,8 @@ namespace PrintScreenApp
 {
     public partial class Form1 : Form
     {
-        private ScreenshotHelper _screenshotHelper;
-        private HotKeyManager _hotKeyManager;
+        private ScreenshotHelper _screenshotHelper = null!;
+        private HotKeyManager _hotKeyManager = null!;
 
         public Form1()
         {
@@ -106,8 +106,20 @@ namespace PrintScreenApp
                 var image = regionForm.CapturedImage;
                 if (image != null)
                 {
-                    _screenshotHelper.SaveCapturedImage(image);
-                    MessageBox.Show("Screenshot captured successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // Open annotation editor
+                    var editor = new AnnotationEditorForm(image);
+                    var editorResult = editor.ShowDialog();
+                    
+                    if (editorResult == DialogResult.OK && editor.EditedImage != null)
+                    {
+                        _screenshotHelper.SaveCapturedImage(editor.EditedImage);
+                        MessageBox.Show("Screenshot captured and edited successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        _screenshotHelper.SaveCapturedImage(image);
+                        MessageBox.Show("Screenshot captured (edit cancelled)!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
                 }
             }
         }

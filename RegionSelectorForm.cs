@@ -9,14 +9,14 @@ namespace PrintScreenApp
     /// </summary>
     public partial class RegionSelectorForm : Form
     {
-        private Bitmap _fullScreenshot;
+        private Bitmap _fullScreenshot = null!;
         private Point _startPoint;
         private Point _endPoint;
         private bool _isSelecting = false;
         private Rectangle _selectionRectangle = Rectangle.Empty;
-        private Bitmap _overlayBuffer;
+        private Bitmap _overlayBuffer = null!;
 
-        public Bitmap CapturedImage { get; private set; }
+        public Bitmap CapturedImage { get; private set; } = null!;
         public Rectangle SelectionRegion { get; private set; }
 
         public RegionSelectorForm()
