@@ -57,7 +57,7 @@
             labelHotkey.Name = "labelHotkey";
             labelHotkey.Size = new Size(220, 19);
             labelHotkey.TabIndex = 11;
-            labelHotkey.Text = "Hotkey: Ctrl + Alt + A";
+            labelHotkey.Text = "Hotkey: Alt + Q";
             
             // 
             // button1 - Region Screenshot

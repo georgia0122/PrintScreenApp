@@ -22,15 +22,15 @@ namespace PrintScreenApp
         }
 
         /// <summary>
-        /// Initialize hotkey: Ctrl + Alt + A
+        /// Initialize hotkey: Alt + Q
         /// </summary>
         private void InitializeHotKey()
         {
             try
             {
                 _hotKeyManager = new HotKeyManager(Handle);
-                var modifiers = HotKeyManager.KeyModifiers.Ctrl | HotKeyManager.KeyModifiers.Alt;
-                _hotKeyManager.Register(modifiers, Keys.A);
+                var modifiers = HotKeyManager.KeyModifiers.Alt;
+                _hotKeyManager.Register(modifiers, Keys.Q);
             }
             catch (Exception ex)
             {
@@ -72,7 +72,13 @@ namespace PrintScreenApp
         /// </summary>
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            _hotKeyManager?.Dispose();
+            // Explicitly unregister hotkey to prevent occupying the hotkey slot
+            if (_hotKeyManager != null)
+            {
+                _hotKeyManager.Unregister();
+                _hotKeyManager.Dispose();
+                _hotKeyManager = null;
+            }
             base.OnFormClosing(e);
         }
 
