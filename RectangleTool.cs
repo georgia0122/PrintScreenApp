@@ -47,7 +47,8 @@ namespace PrintScreenApp
             if (!_isDrawing) return;
 
             Rectangle rect = GetRectangleFromPoints(_startPoint, _currentPoint);
-            using (Pen pen = new Pen(ToolColor, ToolSize) { SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias })
+            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (Pen pen = new Pen(ToolColor, ToolSize))
             {
                 graphics.DrawRectangle(pen, rect);
             }
@@ -56,7 +57,8 @@ namespace PrintScreenApp
         public void Commit(Graphics graphics, Bitmap targetBitmap)
         {
             Rectangle rect = GetRectangleFromPoints(_startPoint, _currentPoint);
-            using (Pen pen = new Pen(ToolColor, ToolSize) { SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias })
+            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (Pen pen = new Pen(ToolColor, ToolSize))
             {
                 graphics.DrawRectangle(pen, rect);
             }

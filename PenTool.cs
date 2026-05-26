@@ -45,7 +45,8 @@ namespace PrintScreenApp
         {
             if (_points.Count < 2) return;
 
-            using (Pen pen = new Pen(ToolColor, ToolSize) { SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias })
+            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (Pen pen = new Pen(ToolColor, ToolSize))
             {
                 for (int i = 0; i < _points.Count - 1; i++)
                 {

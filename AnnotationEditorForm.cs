@@ -54,10 +54,12 @@ namespace PrintScreenApp
         private void InitializeForm()
         {
             this.FormBorderStyle = FormBorderStyle.None;
-            this.WindowState = FormWindowState.Maximized;
             this.BackColor = Color.Black;
             this.TopMost = true;
             this.DoubleBuffered = true;
+            this.StartPosition = FormStartPosition.Manual;
+            // Avoid Maximized + borderless, which extends under the taskbar and hides the bottom toolbar
+            this.Bounds = Screen.FromPoint(Cursor.Position).WorkingArea;
         }
 
         private void InitializeUI()
@@ -86,8 +88,10 @@ namespace PrintScreenApp
 
             CreateToolbarButtons();
 
-            this.Controls.Add(_canvasBox);
+            // Add bottom-docked toolbar first, then Fill canvas, so the toolbar keeps its space
             this.Controls.Add(_toolbarPanel);
+            this.Controls.Add(_canvasBox);
+            _toolbarPanel.BringToFront();
         }
 
         private void CreateToolbarButtons()
@@ -96,7 +100,8 @@ namespace PrintScreenApp
             int toolbarHeight = _toolbarPanel.Height;
 
             // Tool buttons
-            var tools = new[] {
+            var tools = new (string name, IAnnotationTool tool, Keys key)[]
+            {
                 ("Pen (1)", _penTool, Keys.D1),
                 ("Arrow (2)", _arrowTool, Keys.D2),
                 ("Mosaic (3)", _mosaicTool, Keys.D3),

@@ -49,22 +49,23 @@ namespace PrintScreenApp
         {
             if (_hotKeyManager != null && _hotKeyManager.IsHotKeyMessage(message))
             {
-                ShowOrActivate();
+                // Defer to avoid re-entrancy issues when starting modal dialogs from WndProc
+                BeginInvoke(new Action(StartRegionScreenshot));
             }
             base.WndProc(ref message);
         }
 
         /// <summary>
-        /// Show or activate the main form
+        /// Start region screenshot (shared by hotkey and button)
         /// </summary>
-        private void ShowOrActivate()
+        private void StartRegionScreenshot()
         {
             if (WindowState == FormWindowState.Minimized)
             {
                 WindowState = FormWindowState.Normal;
             }
-            Activate();
-            BringToFront();
+
+            button1_Click(this, EventArgs.Empty);
         }
 
         /// <summary>

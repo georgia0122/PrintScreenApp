@@ -64,7 +64,8 @@ namespace PrintScreenApp
             const int arrowSize = 10;
             double angle = Math.Atan2(to.Y - from.Y, to.X - from.X);
 
-            using (Pen pen = new Pen(ToolColor, ToolSize) { SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias })
+            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (Pen pen = new Pen(ToolColor, ToolSize))
             {
                 graphics.DrawLine(pen, from, to);
 
