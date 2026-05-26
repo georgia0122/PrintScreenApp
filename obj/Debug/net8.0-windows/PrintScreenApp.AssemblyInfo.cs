@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PrintScreenApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c65d5e73b93dabf634f6d2c9eacedf374d8598f5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+36d7efc43807b502702930bddb1bf9dbee4be3b6")]
 [assembly: System.Reflection.AssemblyProductAttribute("PrintScreenApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PrintScreenApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
