@@ -60,11 +60,6 @@ namespace PrintScreenApp
         /// </summary>
         private void StartRegionScreenshot()
         {
-            if (WindowState == FormWindowState.Minimized)
-            {
-                WindowState = FormWindowState.Normal;
-            }
-
             button1_Click(this, EventArgs.Empty);
         }
 
@@ -86,42 +81,46 @@ namespace PrintScreenApp
         // Region Screenshot
         private void button1_Click(object sender, EventArgs e)
         {
-            // Hide main window
-            this.Hide();
-            
-            // Process pending UI messages
+            // Hide instantly without a visible flash (opacity 0 before DoEvents)
+            double previousOpacity = Opacity;
+            Opacity = 0;
+            Hide();
             Application.DoEvents();
-            
-            // Wait 200ms to ensure window is completely hidden
-            System.Threading.Thread.Sleep(200);
-            
-            // Show region selector
-            var regionForm = new RegionSelectorForm();
-            var result = regionForm.ShowDialog();
-            
-            // Show main window
-            this.Show();
-            
-            if (result == DialogResult.OK)
+
+            try
             {
-                var image = regionForm.CapturedImage;
-                if (image != null)
+                var regionForm = new RegionSelectorForm();
+                var result = regionForm.ShowDialog();
+
+                if (result == DialogResult.OK)
                 {
-                    // Open annotation editor
-                    var editor = new AnnotationEditorForm(image);
-                    var editorResult = editor.ShowDialog();
-                    
-                    if (editorResult == DialogResult.OK && editor.EditedImage != null)
+                    var image = regionForm.CapturedImage;
+                    if (image != null)
                     {
-                        _screenshotHelper.SaveCapturedImage(editor.EditedImage);
-                        MessageBox.Show("Screenshot captured and edited successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    else
-                    {
-                        _screenshotHelper.SaveCapturedImage(image);
-                        MessageBox.Show("Screenshot captured (edit cancelled)!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        var editor = new AnnotationEditorForm(image);
+                        var editorResult = editor.ShowDialog();
+
+                        Show();
+                        Opacity = previousOpacity;
+
+                        if (editorResult == DialogResult.OK && editor.EditedImage != null)
+                        {
+                            _screenshotHelper.SaveCapturedImage(editor.EditedImage);
+                            MessageBox.Show("Screenshot captured and edited successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else
+                        {
+                            _screenshotHelper.SaveCapturedImage(image);
+                            MessageBox.Show("Screenshot captured (edit cancelled)!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        return;
                     }
                 }
+            }
+            finally
+            {
+                Show();
+                Opacity = previousOpacity;
             }
         }
 

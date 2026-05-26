@@ -26,18 +26,39 @@ namespace PrintScreenApp
             CaptureFullScreen();
         }
 
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                const int WS_EX_LAYERED = 0x00080000;
+                CreateParams cp = base.CreateParams;
+                cp.ExStyle |= WS_EX_LAYERED;
+                return cp;
+            }
+        }
+
         /// <summary>
         /// Configure form properties for full screen overlay mode
         /// </summary>
         private void ConfigureForm()
         {
+            Screen screen = Screen.FromPoint(Cursor.Position);
+
             this.FormBorderStyle = FormBorderStyle.None;
-            this.WindowState = FormWindowState.Maximized;
+            this.ShowInTaskbar = false;
+            this.StartPosition = FormStartPosition.Manual;
+            this.Bounds = screen.Bounds;
             this.BackColor = Color.Black;
-            this.Opacity = 0.3;
+            this.Opacity = 0;
             this.TopMost = true;
             this.Cursor = Cursors.Cross;
             this.DoubleBuffered = true;
+        }
+
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            this.Opacity = 0.3;
         }
 
         /// <summary>
@@ -47,11 +68,12 @@ namespace PrintScreenApp
         {
             try
             {
-                Rectangle screenBounds = Screen.PrimaryScreen.Bounds;
+                Screen screen = Screen.FromPoint(Cursor.Position);
+                Rectangle screenBounds = screen.Bounds;
                 _fullScreenshot = new Bitmap(screenBounds.Width, screenBounds.Height);
                 using (Graphics g = Graphics.FromImage(_fullScreenshot))
                 {
-                    g.CopyFromScreen(Point.Empty, Point.Empty, screenBounds.Size);
+                    g.CopyFromScreen(screenBounds.Location, Point.Empty, screenBounds.Size);
                 }
             }
             catch (Exception ex)

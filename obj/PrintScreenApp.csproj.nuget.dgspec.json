@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\PrintScreenApp.csproj": {}
+    "c:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\PrintScreenApp.csproj": {}
   },
   "projects": {
-    "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\PrintScreenApp.csproj": {
+    "c:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\PrintScreenApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\PrintScreenApp.csproj",
+        "projectUniqueName": "c:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\PrintScreenApp.csproj",
         "projectName": "PrintScreenApp",
-        "projectPath": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\PrintScreenApp.csproj",
+        "projectPath": "c:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\PrintScreenApp.csproj",
         "packagesPath": "C:\\Users\\yoyo\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\obj\\",
+        "outputPath": "c:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

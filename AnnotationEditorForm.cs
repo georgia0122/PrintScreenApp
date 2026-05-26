@@ -54,11 +54,11 @@ namespace PrintScreenApp
         private void InitializeForm()
         {
             this.FormBorderStyle = FormBorderStyle.None;
+            this.ShowInTaskbar = false;
             this.BackColor = Color.Black;
             this.TopMost = true;
             this.DoubleBuffered = true;
             this.StartPosition = FormStartPosition.Manual;
-            // Avoid Maximized + borderless, which extends under the taskbar and hides the bottom toolbar
             this.Bounds = Screen.FromPoint(Cursor.Position).WorkingArea;
         }
 
@@ -77,10 +77,10 @@ namespace PrintScreenApp
             _canvasBox.MouseMove += CanvasBox_MouseMove;
             _canvasBox.MouseUp += CanvasBox_MouseUp;
 
-            // Create toolbar
+            // Create toolbar at top
             _toolbarPanel = new Panel
             {
-                Dock = DockStyle.Bottom,
+                Dock = DockStyle.Top,
                 Height = 80,
                 BackColor = Color.FromArgb(240, 240, 240),
                 BorderStyle = BorderStyle.None
@@ -88,7 +88,7 @@ namespace PrintScreenApp
 
             CreateToolbarButtons();
 
-            // Add bottom-docked toolbar first, then Fill canvas, so the toolbar keeps its space
+            // Add top-docked toolbar first, then Fill canvas, so the toolbar keeps its space
             this.Controls.Add(_toolbarPanel);
             this.Controls.Add(_canvasBox);
             _toolbarPanel.BringToFront();
