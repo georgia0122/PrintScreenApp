@@ -26,8 +26,9 @@ namespace PrintScreenApp
 
         private const int ToolbarHeight = 44;
         private const int ButtonHeight = 32;
+        private const int SymbolButtonWidth = 36;
         private const int HorizontalPadding = 8;
-        private const int Gap = 6;
+        private const int Gap = 4;
 
         private AnnotationToolKind _activeTool = AnnotationToolKind.Pen;
         private Button? _activeButton;
@@ -54,7 +55,7 @@ namespace PrintScreenApp
             StartPosition = FormStartPosition.Manual;
             BackColor = Background;
             ForeColor = Color.White;
-            Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            Font = new Font("Segoe UI Emoji", 11F, FontStyle.Regular);
             DoubleBuffered = true;
         }
 
@@ -63,37 +64,26 @@ namespace PrintScreenApp
             int x = HorizontalPadding;
             int y = (ToolbarHeight - ButtonHeight) / 2;
 
-            _activeButton = AddToolButton(ref x, y, "Pen", AnnotationToolKind.Pen);
-            AddToolButton(ref x, y, "Arrow", AnnotationToolKind.Arrow);
-            AddToolButton(ref x, y, "Mosaic", AnnotationToolKind.Mosaic);
-            AddToolButton(ref x, y, "Rect", AnnotationToolKind.Rectangle);
-            AddToolButton(ref x, y, "Circle", AnnotationToolKind.Circle);
+            _activeButton = AddToolButton(ref x, y, "✏️", AnnotationToolKind.Pen);
+            AddToolButton(ref x, y, "↗️", AnnotationToolKind.Arrow);
+            AddToolButton(ref x, y, "▦", AnnotationToolKind.Mosaic);
+            AddToolButton(ref x, y, "⬜", AnnotationToolKind.Rectangle);
+            AddToolButton(ref x, y, "⭕", AnnotationToolKind.Circle);
 
             x += Gap;
             AddSeparator(x, y);
-            x += 10;
+            x += 8;
 
-            var colorBtn = CreateButton("Color", 52);
+            var colorBtn = CreateSymbolButton("🎨");
             colorBtn.Location = new Point(x, y);
             colorBtn.Click += (_, _) => ColorPickRequested?.Invoke(this, EventArgs.Empty);
             Controls.Add(colorBtn);
             x += colorBtn.Width + Gap;
 
-            var sizeLabel = new Label
-            {
-                Text = "Size",
-                AutoSize = true,
-                ForeColor = Color.White,
-                BackColor = Background,
-                Location = new Point(x, y + 8)
-            };
-            Controls.Add(sizeLabel);
-            x += sizeLabel.Width + 4;
-
             var sizeTracker = new TrackBar
             {
                 Location = new Point(x, y - 2),
-                Size = new Size(90, 32),
+                Size = new Size(80, 32),
                 Minimum = 1,
                 Maximum = 15,
                 Value = 2,
@@ -105,24 +95,24 @@ namespace PrintScreenApp
             x += sizeTracker.Width + Gap;
 
             AddSeparator(x, y);
-            x += 10;
+            x += 8;
 
-            var undoBtn = CreateButton("Undo", 52);
+            var undoBtn = CreateSymbolButton("↩");
             undoBtn.Location = new Point(x, y);
             undoBtn.Click += (_, _) => UndoRequested?.Invoke(this, EventArgs.Empty);
             Controls.Add(undoBtn);
             x += undoBtn.Width + Gap;
 
-            var redoBtn = CreateButton("Redo", 52);
+            var redoBtn = CreateSymbolButton("↪");
             redoBtn.Location = new Point(x, y);
             redoBtn.Click += (_, _) => RedoRequested?.Invoke(this, EventArgs.Empty);
             Controls.Add(redoBtn);
             x += redoBtn.Width + Gap;
 
             AddSeparator(x, y);
-            x += 10;
+            x += 8;
 
-            var saveBtn = CreateButton("Save", 52);
+            var saveBtn = CreateSymbolButton("✔️");
             saveBtn.Location = new Point(x, y);
             saveBtn.BackColor = SaveAccent;
             saveBtn.FlatAppearance.MouseOverBackColor = ControlPaint.Light(SaveAccent, 0.15f);
@@ -130,7 +120,7 @@ namespace PrintScreenApp
             Controls.Add(saveBtn);
             x += saveBtn.Width + Gap;
 
-            var cancelBtn = CreateButton("Cancel", 58);
+            var cancelBtn = CreateSymbolButton("❌");
             cancelBtn.Location = new Point(x, y);
             cancelBtn.BackColor = CancelAccent;
             cancelBtn.FlatAppearance.MouseOverBackColor = ControlPaint.Light(CancelAccent, 0.15f);
@@ -141,9 +131,9 @@ namespace PrintScreenApp
             ClientSize = new Size(x, ToolbarHeight);
         }
 
-        private Button AddToolButton(ref int x, int y, string text, AnnotationToolKind kind)
+        private Button AddToolButton(ref int x, int y, string symbol, AnnotationToolKind kind)
         {
-            var btn = CreateButton(text, 58);
+            var btn = CreateSymbolButton(symbol);
             btn.Location = new Point(x, y);
             btn.Tag = kind;
             btn.Click += ToolButton_Click;
@@ -196,17 +186,18 @@ namespace PrintScreenApp
             btn.ForeColor = Color.White;
         }
 
-        private Button CreateButton(string text, int width)
+        private Button CreateSymbolButton(string symbol)
         {
             var btn = new Button
             {
-                Text = text,
-                Size = new Size(width, ButtonHeight),
+                Text = symbol,
+                Size = new Size(SymbolButtonWidth, ButtonHeight),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Background,
                 ForeColor = Color.White,
                 Cursor = Cursors.Hand,
-                TabStop = false
+                TabStop = false,
+                TextAlign = ContentAlignment.MiddleCenter
             };
             btn.FlatAppearance.BorderSize = 0;
             btn.FlatAppearance.MouseOverBackColor = ButtonHover;
