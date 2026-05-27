@@ -18,6 +18,7 @@ namespace PrintScreenApp
 
         public Bitmap CapturedImage { get; private set; } = null!;
         public Rectangle SelectionRegion { get; private set; }
+        public Rectangle SelectionScreenBounds { get; private set; }
 
         public RegionSelectorForm()
         {
@@ -119,6 +120,7 @@ namespace PrintScreenApp
                 {
                     CaptureSelection();
                     SelectionRegion = _selectionRectangle;
+                    SelectionScreenBounds = RectangleToScreen(_selectionRectangle);
                     this.DialogResult = DialogResult.OK;
                 }
                 this.Close();

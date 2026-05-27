@@ -97,7 +97,7 @@ namespace PrintScreenApp
                     var image = regionForm.CapturedImage;
                     if (image != null)
                     {
-                        var editor = new AnnotationEditorForm(image);
+                        var editor = new AnnotationEditorForm(image, regionForm.SelectionScreenBounds);
                         var editorResult = editor.ShowDialog();
 
                         Show();
