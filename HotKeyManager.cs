@@ -16,14 +16,17 @@ namespace PrintScreenApp
         public enum KeyModifiers
         {
             None = 0,
-            Alt = 1,
-            Ctrl = 2,
-            Shift = 4,
-            Win = 8
+            Alt = 0x0001,
+            Ctrl = 0x0002,
+            Shift = 0x0004,
+            Win = 0x0008,
+            NoRepeat = 0x4000
         }
 
         private const int WmHotkey = 0x0312;
-        private int _hotKeyId = 1;
+        private int _hotKeyId;
+        private uint _registeredMod;
+        private uint _registeredVk;
         private IntPtr _handle;
         private bool _isRegistered = false;
         private bool _disposed = false;
@@ -65,7 +68,8 @@ namespace PrintScreenApp
             try
             {
                 uint mod = (uint)modifiers;
-                uint vk = (uint)keyCode;
+                uint vk = (uint)keyCode & 0xFF;
+                _hotKeyId = Environment.TickCount & 0xBFFF;
 
                 bool result = RegisterHotKey(_handle, _hotKeyId, mod, vk);
 
@@ -77,6 +81,8 @@ namespace PrintScreenApp
                         "Possible reasons: Hotkey is already used by another application or window handle is invalid.");
                 }
 
+                _registeredMod = mod;
+                _registeredVk = vk;
                 _isRegistered = true;
                 return _hotKeyId;
             }
@@ -97,23 +103,8 @@ namespace PrintScreenApp
                 return;
             }
 
-            try
-            {
-                bool result = UnregisterHotKey(_handle, _hotKeyId);
-
-                if (!result)
-                {
-                    int errorCode = Marshal.GetLastWin32Error();
-                    throw new InvalidOperationException(
-                        $"Failed to unregister hotkey. Error code: {errorCode}");
-                }
-
-                _isRegistered = false;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Exception occurred while unregistering hotkey: {ex.Message}");
-            }
+            UnregisterHotKey(_handle, _hotKeyId);
+            _isRegistered = false;
         }
 
         /// <summary>
@@ -121,7 +112,20 @@ namespace PrintScreenApp
         /// </summary>
         public bool IsHotKeyMessage(Message message)
         {
-            return message.Msg == WmHotkey && (int)message.WParam == _hotKeyId;
+            if (message.Msg != WmHotkey || !_isRegistered)
+            {
+                return false;
+            }
+
+            if ((int)message.WParam != _hotKeyId)
+            {
+                return false;
+            }
+
+            int lParam = message.LParam.ToInt32();
+            uint mod = (uint)(lParam & 0xFFFF);
+            uint vk = (uint)((lParam >> 16) & 0xFFFF);
+            return mod == _registeredMod && vk == _registeredVk;
         }
 
         /// <summary>

@@ -105,7 +105,7 @@ namespace PrintScreenApp
         protected override void OnShown(EventArgs e)
         {
             base.OnShown(e);
-            _toolbar.PositionNearSelection(_screenBounds);
+            _toolbar.UpdatePosition(_screenBounds);
             _toolbar.Show();
         }
 

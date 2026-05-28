@@ -49,6 +49,7 @@ namespace PrintScreenApp
 
         private void InitializeForm()
         {
+            // Borderless floating toolbar — no Dock, manual position via UpdatePosition
             FormBorderStyle = FormBorderStyle.None;
             ShowInTaskbar = false;
             TopMost = true;
@@ -215,30 +216,27 @@ namespace PrintScreenApp
         }
 
         /// <summary>
-        /// Place toolbar below the selection; if there is not enough room, place at the inside top of the selection.
+        /// Position the floating toolbar relative to the screenshot selection (screen coordinates).
         /// </summary>
-        public void PositionNearSelection(Rectangle selectionScreenRect)
+        public void UpdatePosition(Rectangle selectionRect)
         {
-            Screen screen = Screen.FromRectangle(selectionScreenRect);
-            Rectangle workingArea = screen.WorkingArea;
-            const int gap = 8;
+            const int gapBelow = 5;
 
-            int x = selectionScreenRect.Left + (selectionScreenRect.Width - Width) / 2;
-            x = Math.Max(workingArea.Left, Math.Min(x, workingArea.Right - Width));
+            Screen screen = Screen.FromRectangle(selectionRect);
+            Rectangle work = screen.WorkingArea;
 
-            int belowY = selectionScreenRect.Bottom + gap;
-            int y;
+            Left = selectionRect.Left + (selectionRect.Width - Width) / 2;
+            Top = selectionRect.Bottom + gapBelow;
 
-            if (belowY + Height <= workingArea.Bottom)
+            // Not enough room below — tuck against the inside bottom of the selection
+            if (Top + Height > work.Bottom)
             {
-                y = belowY;
-            }
-            else
-            {
-                y = selectionScreenRect.Top + gap;
+                Top = selectionRect.Bottom - Height - gapBelow;
             }
 
-            Location = new Point(x, y);
+            // Keep fully on screen horizontally
+            Left = Math.Max(work.Left, Math.Min(Left, work.Right - Width));
+            Top = Math.Max(work.Top, Math.Min(Top, work.Bottom - Height));
         }
     }
 }

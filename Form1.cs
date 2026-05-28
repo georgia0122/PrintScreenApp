@@ -16,20 +16,31 @@ namespace PrintScreenApp
             _screenshotHelper = new ScreenshotHelper();
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        protected override void OnHandleCreated(EventArgs e)
         {
-            InitializeHotKey();
+            base.OnHandleCreated(e);
+            RegisterHotKey();
+        }
+
+        protected override void OnHandleDestroyed(EventArgs e)
+        {
+            _hotKeyManager?.Dispose();
+            _hotKeyManager = null!;
+            base.OnHandleDestroyed(e);
         }
 
         /// <summary>
-        /// Initialize hotkey: Alt + Q
+        /// Register global hotkey: Ctrl + Alt + Q
         /// </summary>
-        private void InitializeHotKey()
+        private void RegisterHotKey()
         {
             try
             {
+                _hotKeyManager?.Dispose();
                 _hotKeyManager = new HotKeyManager(Handle);
-                var modifiers = HotKeyManager.KeyModifiers.Alt;
+                var modifiers = HotKeyManager.KeyModifiers.Ctrl
+                              | HotKeyManager.KeyModifiers.Alt
+                              | HotKeyManager.KeyModifiers.NoRepeat;
                 _hotKeyManager.Register(modifiers, Keys.Q);
             }
             catch (Exception ex)
@@ -68,13 +79,8 @@ namespace PrintScreenApp
         /// </summary>
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            // Explicitly unregister hotkey to prevent occupying the hotkey slot
-            if (_hotKeyManager != null)
-            {
-                _hotKeyManager.Unregister();
-                _hotKeyManager.Dispose();
-                _hotKeyManager = null;
-            }
+            _hotKeyManager?.Dispose();
+            _hotKeyManager = null!;
             base.OnFormClosing(e);
         }
 

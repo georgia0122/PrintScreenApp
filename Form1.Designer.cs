@@ -57,7 +57,7 @@
             labelHotkey.Name = "labelHotkey";
             labelHotkey.Size = new Size(220, 19);
             labelHotkey.TabIndex = 11;
-            labelHotkey.Text = "Hotkey: Alt + Q";
+            labelHotkey.Text = "Hotkey: Ctrl + Alt + Q";
             
             // 
             // button1 - Region Screenshot
@@ -134,7 +134,6 @@
             Name = "Form1";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Screenshot Tool";
-            Load += Form1_Load;
             ResumeLayout(false);
             PerformLayout();
         }
