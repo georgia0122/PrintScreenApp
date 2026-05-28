@@ -14,6 +14,15 @@ namespace PrintScreenApp
         {
             InitializeComponent();
             _screenshotHelper = new ScreenshotHelper();
+            ShowInTaskbar = false;
+            WindowState = FormWindowState.Minimized;
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            Hide();
+            ShowInTaskbar = false;
         }
 
         protected override void OnHandleCreated(EventArgs e)
