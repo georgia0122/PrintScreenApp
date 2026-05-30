@@ -14,7 +14,7 @@ namespace PrintScreenApp
     }
 
     /// <summary>
-    /// Floating annotation toolbar shown near the screenshot selection.
+    /// Floating annotation toolbar — draggable like iPadOS pencil palette.
     /// </summary>
     public class ToolbarForm : Form
     {
@@ -23,15 +23,19 @@ namespace PrintScreenApp
         private static readonly Color ActiveAccent = Color.FromArgb(0x00, 0x78, 0xD4);
         private static readonly Color SaveAccent = Color.FromArgb(0x2D, 0x8A, 0x45);
         private static readonly Color CancelAccent = Color.FromArgb(0xC4, 0x2B, 0x1C);
+        private static readonly Color GripColor = Color.FromArgb(0x88, 0x88, 0x88);
 
         private const int ToolbarHeight = 44;
         private const int ButtonHeight = 32;
         private const int SymbolButtonWidth = 36;
         private const int HorizontalPadding = 8;
         private const int Gap = 4;
+        private const int DragHandleWidth = 12;
 
         private AnnotationToolKind _activeTool = AnnotationToolKind.Pen;
         private Button? _activeButton;
+        private Point _mouseOffset;
+        private bool _isDragging;
 
         public event EventHandler<AnnotationToolKind>? ToolSelected;
         public event EventHandler? ColorPickRequested;
@@ -49,7 +53,6 @@ namespace PrintScreenApp
 
         private void InitializeForm()
         {
-            // Borderless floating toolbar — no Dock, manual position via UpdatePosition
             FormBorderStyle = FormBorderStyle.None;
             ShowInTaskbar = false;
             TopMost = true;
@@ -58,11 +61,18 @@ namespace PrintScreenApp
             ForeColor = Color.White;
             Font = new Font("Segoe UI Emoji", 11F, FontStyle.Regular);
             DoubleBuffered = true;
+
+            MouseDown += Toolbar_MouseDown;
+            MouseMove += Toolbar_MouseMove;
+            MouseUp += Toolbar_MouseUp;
         }
 
         private void BuildToolbar()
         {
-            int x = HorizontalPadding;
+            var dragHandle = CreateDragHandle();
+            Controls.Add(dragHandle);
+
+            int x = DragHandleWidth + HorizontalPadding;
             int y = (ToolbarHeight - ButtonHeight) / 2;
 
             _activeButton = AddToolButton(ref x, y, "✏️", AnnotationToolKind.Pen);
@@ -130,6 +140,93 @@ namespace PrintScreenApp
             x += cancelBtn.Width + HorizontalPadding;
 
             ClientSize = new Size(x, ToolbarHeight);
+        }
+
+        private Panel CreateDragHandle()
+        {
+            var handle = new Panel
+            {
+                Location = new Point(0, 0),
+                Size = new Size(DragHandleWidth, ToolbarHeight),
+                BackColor = Background,
+                Cursor = Cursors.SizeAll
+            };
+            handle.Paint += DragHandle_Paint;
+            WireDragEvents(handle);
+            return handle;
+        }
+
+        private void DragHandle_Paint(object? sender, PaintEventArgs e)
+        {
+            const int dotSize = 3;
+            const int dotGap = 4;
+            int centerX = DragHandleWidth / 2;
+            int totalHeight = dotSize * 3 + dotGap * 2;
+            int startY = (ToolbarHeight - totalHeight) / 2;
+
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using var brush = new SolidBrush(GripColor);
+            for (int i = 0; i < 3; i++)
+            {
+                int y = startY + i * (dotSize + dotGap);
+                e.Graphics.FillEllipse(brush, centerX - dotSize / 2, y, dotSize, dotSize);
+            }
+        }
+
+        private void WireDragEvents(Control control)
+        {
+            control.MouseDown += Toolbar_MouseDown;
+            control.MouseMove += Toolbar_MouseMove;
+            control.MouseUp += Toolbar_MouseUp;
+        }
+
+        private void Toolbar_MouseDown(object? sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left)
+            {
+                return;
+            }
+
+            Point clientPoint = sender is Control ctrl && ctrl != this
+                ? PointToClient(ctrl.PointToScreen(e.Location))
+                : e.Location;
+
+            _mouseOffset = new Point(-clientPoint.X, -clientPoint.Y);
+            _isDragging = true;
+            Capture = true;
+        }
+
+        private void Toolbar_MouseMove(object? sender, MouseEventArgs e)
+        {
+            if (!_isDragging)
+            {
+                return;
+            }
+
+            Location = new Point(
+                MousePosition.X + _mouseOffset.X,
+                MousePosition.Y + _mouseOffset.Y);
+        }
+
+        private void Toolbar_MouseUp(object? sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left)
+            {
+                return;
+            }
+
+            EndDrag();
+        }
+
+        private void EndDrag()
+        {
+            if (!_isDragging)
+            {
+                return;
+            }
+
+            _isDragging = false;
+            Capture = false;
         }
 
         private Button AddToolButton(ref int x, int y, string symbol, AnnotationToolKind kind)
@@ -216,7 +313,8 @@ namespace PrintScreenApp
         }
 
         /// <summary>
-        /// Position the floating toolbar relative to the screenshot selection (screen coordinates).
+        /// Initial placement near the screenshot selection (screen coordinates).
+        /// User can freely reposition afterward by dragging.
         /// </summary>
         public void UpdatePosition(Rectangle selectionRect)
         {
@@ -228,13 +326,11 @@ namespace PrintScreenApp
             Left = selectionRect.Left + (selectionRect.Width - Width) / 2;
             Top = selectionRect.Bottom + gapBelow;
 
-            // Not enough room below — tuck against the inside bottom of the selection
             if (Top + Height > work.Bottom)
             {
                 Top = selectionRect.Bottom - Height - gapBelow;
             }
 
-            // Keep fully on screen horizontally
             Left = Math.Max(work.Left, Math.Min(Left, work.Right - Width));
             Top = Math.Max(work.Top, Math.Min(Top, work.Bottom - Height));
         }
