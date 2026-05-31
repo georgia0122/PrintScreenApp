@@ -14,8 +14,9 @@ namespace PrintScreenApp
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            // Main form stays hidden; hotkeys and screenshot UI run in the background.
-            Application.Run(new Form1());
+            Form1 form = new Form1();
+            form.Show();
+            Application.Run(form);
         }
     }
 }

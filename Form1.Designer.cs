@@ -132,10 +132,10 @@
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             Name = "Form1";
-            ShowInTaskbar = false;
+            ShowInTaskbar = true;
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Screenshot Tool";
-            WindowState = FormWindowState.Minimized;
+            WindowState = FormWindowState.Normal;
             ResumeLayout(false);
             PerformLayout();
         }
