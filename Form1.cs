@@ -8,48 +8,28 @@ namespace PrintScreenApp
     public partial class Form1 : Form
     {
         private ScreenshotHelper _screenshotHelper = null!;
-        private HotKeyManager _hotKeyManager = null!;
+        private HotKeyManager? _hotKeyManager;
 
         public Form1()
         {
             InitializeComponent();
             _screenshotHelper = new ScreenshotHelper();
-            ShowInTaskbar = false;
-            WindowState = FormWindowState.Minimized;
         }
 
-        protected override void OnLoad(EventArgs e)
+        private void Form1_Load(object sender, EventArgs e)
         {
-            base.OnLoad(e);
-            Hide();
-            ShowInTaskbar = false;
-        }
-
-        protected override void OnHandleCreated(EventArgs e)
-        {
-            base.OnHandleCreated(e);
-            RegisterHotKey();
-        }
-
-        protected override void OnHandleDestroyed(EventArgs e)
-        {
-            _hotKeyManager?.Dispose();
-            _hotKeyManager = null!;
-            base.OnHandleDestroyed(e);
+            InitializeHotKey();
         }
 
         /// <summary>
-        /// Register global hotkey: Ctrl + Alt + Q
+        /// Initialize hotkey: Alt + Q
         /// </summary>
-        private void RegisterHotKey()
+        private void InitializeHotKey()
         {
             try
             {
-                _hotKeyManager?.Dispose();
                 _hotKeyManager = new HotKeyManager(Handle);
-                var modifiers = HotKeyManager.KeyModifiers.Ctrl
-                              | HotKeyManager.KeyModifiers.Alt
-                              | HotKeyManager.KeyModifiers.NoRepeat;
+                var modifiers = HotKeyManager.KeyModifiers.Alt;
                 _hotKeyManager.Register(modifiers, Keys.Q);
             }
             catch (Exception ex)
@@ -88,8 +68,13 @@ namespace PrintScreenApp
         /// </summary>
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            _hotKeyManager?.Dispose();
-            _hotKeyManager = null!;
+            // Explicitly unregister hotkey to prevent occupying the hotkey slot
+            if (_hotKeyManager != null)
+            {
+                _hotKeyManager.Unregister();
+                _hotKeyManager.Dispose();
+                _hotKeyManager = null;
+            }
             base.OnFormClosing(e);
         }
 

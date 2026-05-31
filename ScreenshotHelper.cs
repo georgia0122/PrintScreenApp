@@ -10,13 +10,13 @@ namespace PrintScreenApp
     /// </summary>
     public class ScreenshotHelper
     {
-        private Bitmap _capturedImage;
+        private Bitmap? _capturedImage;
 
         /// <summary>
         /// Capture a region from the screen
         /// </summary>
         /// <returns>Captured image as Bitmap</returns>
-        public Bitmap CaptureRegion()
+        public Bitmap? CaptureRegion()
         {
             var regionSelector = new RegionSelectorForm();
             if (regionSelector.ShowDialog() == DialogResult.OK)
@@ -52,8 +52,8 @@ namespace PrintScreenApp
             try
             {
                 // Create directory if needed
-                string directory = Path.GetDirectoryName(filePath);
-                if (!Directory.Exists(directory))
+                string? directory = Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
                 {
                     Directory.CreateDirectory(directory);
                 }
@@ -98,7 +98,7 @@ namespace PrintScreenApp
         /// Get the captured image
         /// </summary>
         /// <returns>Captured Bitmap image</returns>
-        public Bitmap GetCapturedImage()
+        public Bitmap? GetCapturedImage()
         {
             return _capturedImage;
         }

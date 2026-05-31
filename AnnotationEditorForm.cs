@@ -182,28 +182,28 @@ namespace PrintScreenApp
             }
         }
 
-        private void CanvasBox_MouseDown(object sender, MouseEventArgs e)
+        private void CanvasBox_MouseDown(object? sender, MouseEventArgs e)
         {
             using Graphics g = Graphics.FromImage(_editingImage);
             _currentTool.OnMouseDown(e, g, _editingImage);
             _canvasBox.Invalidate();
         }
 
-        private void CanvasBox_MouseMove(object sender, MouseEventArgs e)
+        private void CanvasBox_MouseMove(object? sender, MouseEventArgs e)
         {
             using Graphics g = Graphics.FromImage(_editingImage);
             _currentTool.OnMouseMove(e, g, _editingImage);
             _canvasBox.Invalidate();
         }
 
-        private void CanvasBox_MouseUp(object sender, MouseEventArgs e)
+        private void CanvasBox_MouseUp(object? sender, MouseEventArgs e)
         {
             using Graphics g = Graphics.FromImage(_editingImage);
             _currentTool.OnMouseUp(e, g, _editingImage);
             _canvasBox.Invalidate();
         }
 
-        private void CanvasBox_Paint(object sender, PaintEventArgs e)
+        private void CanvasBox_Paint(object? sender, PaintEventArgs e)
         {
             _currentTool.DrawPreview(e.Graphics);
         }
