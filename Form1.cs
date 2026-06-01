@@ -14,6 +14,76 @@ namespace PrintScreenApp
         {
             InitializeComponent();
             _screenshotHelper = new ScreenshotHelper();
+            
+            // 创建右键菜单，支持恢复窗体或退出
+            ContextMenuStrip contextMenu = new ContextMenuStrip();
+            contextMenu.Items.Add("显示", null, (s, e) => ShowWindow());
+            contextMenu.Items.Add("隐藏", null, (s, e) => HideWindow());
+            contextMenu.Items.Add("-");
+            contextMenu.Items.Add("退出", null, (s, e) => ExitApplication());
+            this.ContextMenuStrip = contextMenu;
+            
+            // 禁用控件面板默认事件处理（只使用热键）
+            this.ShowInTaskbar = true;
+            this.Opacity = 0;  // 完全透明，即使显示也看不见
+            this.WindowState = FormWindowState.Minimized;
+        }
+
+        /// <summary>
+        /// 【核心黑科技】：重写窗体创建参数。
+        /// 通过赋予 WS_EX_TOOLWINDOW 样式，并在首次创建时抹去可见性，
+        /// 可以让窗体在【完全隐形】的同时，保持【WndProc 消息循环 100% 畅通】。
+        /// </summary>
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                // 变成工具箱窗口样式（不在 Alt+Tab 中出现，不占任务栏）
+                cp.ExStyle |= 0x00000080; 
+                return cp;
+            }
+        }
+
+        protected override void SetVisibleCore(bool value)
+        {
+            // 强行阻止程序启动时显示，保持完全隐形
+            if (!IsHandleCreated)
+            {
+                CreateHandle();
+                value = false; 
+            }
+            // 只有在明确调用ShowWindow()时才显示
+            if (!_isManuallyShowed)
+            {
+                value = false;
+            }
+            base.SetVisibleCore(value);
+        }
+        
+        private bool _isManuallyShowed = false;
+        
+        private void ShowWindow()
+        {
+            _isManuallyShowed = true;
+            this.WindowState = FormWindowState.Normal;
+            this.Show();
+            this.Activate();
+            _isManuallyShowed = false;
+        }
+        
+        private void HideWindow()
+        {
+            this.WindowState = FormWindowState.Minimized;
+            this.Hide();
+        }
+        
+        private void ExitApplication()
+        {
+            if (MessageBox.Show("确定要退出应用吗？", "确认", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                Application.Exit();
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -21,54 +91,46 @@ namespace PrintScreenApp
             InitializeHotKey();
         }
 
-        /// <summary>
-        /// Initialize hotkey: Ctrl + Shift + Alt + L
-        /// </summary>
         private void InitializeHotKey()
         {
             try
             {
                 _hotKeyManager = new HotKeyManager(Handle);
-                var modifiers = HotKeyManager.KeyModifiers.Ctrl | HotKeyManager.KeyModifiers.Shift | HotKeyManager.KeyModifiers.Alt;
+
+                // 【硬核测试】：为了排除一切干扰，我们直接用这个“四键合一”的终极冷门组合！
+                // 必须同时按下：Ctrl + Shift + Alt + L
+                var modifiers = HotKeyManager.KeyModifiers.Ctrl | 
+                                HotKeyManager.KeyModifiers.Shift | 
+                                HotKeyManager.KeyModifiers.Alt;
+                
                 _hotKeyManager.Register(modifiers, Keys.L);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Hotkey registration failed: {ex.Message}\n\nPlease restart the application.",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
+                MessageBox.Show($"快捷键注册失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
-        /// <summary>
-        /// Intercept WndProc messages for hotkey handling
-        /// </summary>
         protected override void WndProc(ref Message message)
         {
             if (_hotKeyManager != null && _hotKeyManager.IsHotKeyMessage(message))
             {
-                // Defer to avoid re-entrancy issues when starting modal dialogs from WndProc
-                BeginInvoke(new Action(StartRegionScreenshot));
+                // 收到消息后，立即触发全屏截图（同步调用，确保瞬间冻结）
+                Console.WriteLine("[HOTKEY] 快捷键触发 - 启动全屏冻结截图...");
+                
+                // 直接调用（同步），确保最快的响应速度
+                StartRegionScreenshot();
             }
             base.WndProc(ref message);
         }
 
-        /// <summary>
-        /// Start region screenshot (shared by hotkey and button)
-        /// </summary>
         private void StartRegionScreenshot()
         {
             button1_Click(this, EventArgs.Empty);
         }
 
-        /// <summary>
-        /// Cleanup on form closing
-        /// </summary>
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            // Explicitly unregister hotkey to prevent occupying the hotkey slot
             if (_hotKeyManager != null)
             {
                 _hotKeyManager.Unregister();
@@ -78,17 +140,12 @@ namespace PrintScreenApp
             base.OnFormClosing(e);
         }
 
-        // Region Screenshot
+        // 触发截图区域选择
         private void button1_Click(object sender, EventArgs e)
         {
-            // Hide instantly without a visible flash (opacity 0 before DoEvents)
-            double previousOpacity = Opacity;
-            Opacity = 0;
-            Hide();
-            Application.DoEvents();
-
             try
             {
+                // 立即显示全屏冻结覆盖
                 var regionForm = new RegionSelectorForm();
                 var result = regionForm.ShowDialog();
 
@@ -100,31 +157,28 @@ namespace PrintScreenApp
                         var editor = new AnnotationEditorForm(image, regionForm.SelectionScreenBounds);
                         var editorResult = editor.ShowDialog();
 
-                        Show();
-                        Opacity = previousOpacity;
-
                         if (editorResult == DialogResult.OK && editor.EditedImage != null)
                         {
                             _screenshotHelper.SaveCapturedImage(editor.EditedImage);
-                            MessageBox.Show("Screenshot captured and edited successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            // 截图完成后，保持后台隐形，不弹出任何消息框（可选）
+                            // MessageBox.Show("截图并编辑成功！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            Console.WriteLine("[SUCCESS] 截图并编辑已保存");
                         }
                         else
                         {
                             _screenshotHelper.SaveCapturedImage(image);
-                            MessageBox.Show("Screenshot captured (edit cancelled)!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            // MessageBox.Show("截图已保存（未编辑）！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            Console.WriteLine("[INFO] 截图已保存（未编辑）");
                         }
-                        return;
                     }
                 }
             }
-            finally
+            catch (Exception ex)
             {
-                Show();
-                Opacity = previousOpacity;
+                MessageBox.Show($"截图业务出错: {ex.Message}");
             }
         }
 
-        // Save Screenshot
         private void button2_Click(object sender, EventArgs e)
         {
             using (SaveFileDialog sfd = new SaveFileDialog())
@@ -139,37 +193,35 @@ namespace PrintScreenApp
             }
         }
 
-        // Copy to Clipboard
         private void button3_Click(object sender, EventArgs e)
         {
             _screenshotHelper.CopyToClipboard();
         }
 
-        /// <summary>
-        /// Mouse enter - highlight button
-        /// </summary>
         private void Button_MouseEnter(object sender, EventArgs e)
         {
-            if (sender is Button btn)
+            if (sender is Control ctl)
             {
-                btn.BackColor = ControlPaint.Light(btn.BackColor, 0.2f);
+                ctl.BackColor = ControlPaint.Light(ctl.BackColor, 0.2f);
             }
         }
 
-        /// <summary>
-        /// Mouse leave - restore button color
-        /// </summary>
         private void Button_MouseLeave(object sender, EventArgs e)
         {
-            if (sender is Button btn)
+            if (sender is Control ctl)
             {
-                // Reset button colors
-                if (btn.Name == "button1")
-                    btn.BackColor = Color.FromArgb(0, 120, 212);
-                else if (btn.Name == "button2")
-                    btn.BackColor = Color.FromArgb(107, 105, 214);
-                else if (btn.Name == "button3")
-                    btn.BackColor = Color.FromArgb(59, 185, 72);
+                switch (ctl.Name)
+                {
+                    case "labelButton1":
+                        ctl.BackColor = Color.FromArgb(0, 120, 212);
+                        break;
+                    case "labelButton2":
+                        ctl.BackColor = Color.FromArgb(107, 105, 214);
+                        break;
+                    case "labelButton3":
+                        ctl.BackColor = Color.FromArgb(59, 185, 72);
+                        break;
+                }
             }
         }
     }
