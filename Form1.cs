@@ -22,15 +22,15 @@ namespace PrintScreenApp
         }
 
         /// <summary>
-        /// Initialize hotkey: Alt + Q
+        /// Initialize hotkey: Ctrl + Shift + Alt + L
         /// </summary>
         private void InitializeHotKey()
         {
             try
             {
                 _hotKeyManager = new HotKeyManager(Handle);
-                var modifiers = HotKeyManager.KeyModifiers.Alt;
-                _hotKeyManager.Register(modifiers, Keys.Q);
+                var modifiers = HotKeyManager.KeyModifiers.Ctrl | HotKeyManager.KeyModifiers.Shift | HotKeyManager.KeyModifiers.Alt;
+                _hotKeyManager.Register(modifiers, Keys.L);
             }
             catch (Exception ex)
             {
