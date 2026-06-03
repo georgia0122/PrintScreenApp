@@ -9,6 +9,10 @@ namespace PrintScreenApp
     /// </summary>
     public partial class AnnotationEditorForm : Form
     {
+        // 外描边宽度，让用户能看清批注区域的边界
+        private const int BorderThickness = 4;
+        private static readonly Color BorderColor = Color.FromArgb(255, 230, 50, 50);
+
         private readonly Rectangle _screenBounds;
         private Bitmap _originalImage = null!;
         private Bitmap _editingImage = null!;
@@ -54,21 +58,30 @@ namespace PrintScreenApp
         {
             FormBorderStyle = FormBorderStyle.None;
             ShowInTaskbar = false;
-            BackColor = Color.Black;
+            BackColor = BorderColor; // 表单背景充当边框
             TopMost = true;
             DoubleBuffered = true;
             StartPosition = FormStartPosition.Manual;
-            Bounds = _screenBounds;
+
+            // 在选区外拓宽边框厚度，同时限制在屏幕内
+            Rectangle screen = Screen.FromRectangle(_screenBounds).Bounds;
+            Rectangle expanded = Rectangle.Inflate(_screenBounds, BorderThickness, BorderThickness);
+            expanded.Intersect(screen);
+            Bounds = expanded;
         }
 
         private void InitializeUI()
         {
             _canvasBox = new PictureBox
             {
-                Dock = DockStyle.Fill,
                 BackColor = Color.Black,
                 SizeMode = PictureBoxSizeMode.StretchImage,
-                Image = _editingImage
+                Image = _editingImage,
+                Location = new Point(BorderThickness, BorderThickness),
+                Size = new Size(
+                    Math.Max(1, ClientSize.Width - BorderThickness * 2),
+                    Math.Max(1, ClientSize.Height - BorderThickness * 2)),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
             };
             _canvasBox.Paint += CanvasBox_Paint;
             _canvasBox.MouseDown += CanvasBox_MouseDown;

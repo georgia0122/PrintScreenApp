@@ -52,13 +52,15 @@
             // labelHotkey
             // 
             labelHotkey.AutoSize = true;
-            labelHotkey.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
-            labelHotkey.ForeColor = Color.FromArgb(110, 110, 115);
+            labelHotkey.Font = new Font("Segoe UI", 10F, FontStyle.Underline);
+            labelHotkey.ForeColor = Color.FromArgb(0, 120, 212);
+            labelHotkey.Cursor = Cursors.Hand;
             labelHotkey.Location = new Point(30, 80);
             labelHotkey.Name = "labelHotkey";
             labelHotkey.Size = new Size(220, 19);
             labelHotkey.TabIndex = 11;
-            labelHotkey.Text = "Hotkey: Ctrl+Alt+Z 或 Ctrl+Win+Z";
+            labelHotkey.Text = "快捷键：点此设置";
+            labelHotkey.Click += LabelHotkey_Click;
             
             // 
             // flowLayoutPanel1

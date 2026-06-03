@@ -10,3 +10,19 @@
 2026-06-03 10:01:23.576 Region selector closed: OK.
 2026-06-03 10:01:33.511 Screenshot copied to clipboard.
 2026-06-03 10:01:33.518 Screenshot auto-saved to C:\Users\farde\Pictures\PrintScreenApp\Screenshot_20260603_100133.png.
+2026-06-03 10:02:45.149 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x1D0E64)
+2026-06-03 10:02:45.164 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x1D0E64)
+2026-06-03 10:02:45.165 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x1D0E64)
+2026-06-03 10:02:45.165 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x1D0E64)
+2026-06-03 10:02:45.169 Keyboard hook installed: True
+2026-06-03 10:02:57.233 Starting region screenshot.
+2026-06-03 10:03:03.420 Region selector closed: OK.
+2026-06-03 10:03:07.437 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x6905F2)
+2026-06-03 10:03:07.453 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x6905F2)
+2026-06-03 10:03:07.453 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x6905F2)
+2026-06-03 10:03:07.453 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x6905F2)
+2026-06-03 10:03:07.457 Keyboard hook installed: True
+2026-06-03 10:03:47.050 Starting region screenshot.
+2026-06-03 10:03:49.160 Region selector closed: OK.
+2026-06-03 10:04:07.716 Screenshot copied to clipboard.
+2026-06-03 10:04:07.721 Screenshot auto-saved to C:\Users\farde\Pictures\PrintScreenApp\Screenshot_20260603_100407.png.
