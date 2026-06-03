@@ -1,0 +1,1755 @@
+AnnotationEditorForm.cs
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+namespace PrintScreenApp
+{
+    public partial class AnnotationEditorForm : Form
+    {
+        private readonly Rectangle _screenBounds;
+        private Bitmap _originalImage = null!;
+        private Bitmap _editingImage = null!;
+        private DrawingManager _drawingManager = null!;
+        private IAnnotationTool _currentTool = null!;
+        private ToolbarForm _toolbar = null!;
+        private PictureBox _canvasBox = null!;
+        private Color _currentColor = Color.Red;
+        private int _currentSize = 2;
+        private PenTool _penTool = null!;
+        private ArrowTool _arrowTool = null!;
+        private MosaicTool _mosaicTool = null!;
+        private RectangleTool _rectangleTool = null!;
+        private CircleTool _circleTool = null!;
+        public Bitmap EditedImage { get; private set; } = null!;
+        public AnnotationEditorForm(Bitmap image, Rectangle screenBounds)
+        {
+            _screenBounds = screenBounds;
+            InitializeComponent();
+            _originalImage = (Bitmap)image.Clone();
+            _editingImage = (Bitmap)image.Clone();
+            _drawingManager = new DrawingManager(image);
+            InitializeTools();
+            InitializeForm();
+            InitializeUI();
+            InitializeToolbar();
+        }
+        private void InitializeTools()
+        {
+            _penTool = new PenTool { ToolColor = _currentColor, ToolSize = _currentSize };
+            _arrowTool = new ArrowTool { ToolColor = _currentColor, ToolSize = _currentSize };
+            _mosaicTool = new MosaicTool { ToolColor = _currentColor, ToolSize = 10 };
+            _rectangleTool = new RectangleTool { ToolColor = _currentColor, ToolSize = _currentSize };
+            _circleTool = new CircleTool { ToolColor = _currentColor, ToolSize = _currentSize };
+            _currentTool = _penTool;
+        }
+        private void InitializeForm()
+        {
+            FormBorderStyle = FormBorderStyle.None;
+            ShowInTaskbar = false;
+            BackColor = Color.Black;
+            TopMost = true;
+            DoubleBuffered = true;
+            StartPosition = FormStartPosition.Manual;
+            Bounds = _screenBounds;
+        }
+        private void InitializeUI()
+        {
+            _canvasBox = new PictureBox
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.Black,
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                Image = _editingImage
+            };
+            _canvasBox.Paint += CanvasBox_Paint;
+            _canvasBox.MouseDown += CanvasBox_MouseDown;
+            _canvasBox.MouseMove += CanvasBox_MouseMove;
+            _canvasBox.MouseUp += CanvasBox_MouseUp;
+            Controls.Add(_canvasBox);
+        }
+        private void InitializeToolbar()
+        {
+            _toolbar = new ToolbarForm();
+            _toolbar.ToolSelected += (_, kind) => SelectTool(GetTool(kind));
+            _toolbar.ColorPickRequested += (_, _) => PickColor();
+            _toolbar.BrushSizeChanged += (_, size) =>
+            {
+                _currentSize = size;
+                UpdateToolSize();
+            };
+            _toolbar.UndoRequested += (_, _) => Undo();
+            _toolbar.RedoRequested += (_, _) => Redo();
+            _toolbar.SaveRequested += (_, _) =>
+            {
+                EditedImage = _editingImage;
+                DialogResult = DialogResult.OK;
+                Close();
+            };
+            _toolbar.CancelRequested += (_, _) =>
+            {
+                DialogResult = DialogResult.Cancel;
+                Close();
+            };
+        }
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            _toolbar.UpdatePosition(_screenBounds);
+            _toolbar.Show();
+        }
+        private IAnnotationTool GetTool(AnnotationToolKind kind) => kind switch
+        {
+            AnnotationToolKind.Pen => _penTool,
+            AnnotationToolKind.Arrow => _arrowTool,
+            AnnotationToolKind.Mosaic => _mosaicTool,
+            AnnotationToolKind.Rectangle => _rectangleTool,
+            AnnotationToolKind.Circle => _circleTool,
+            _ => _penTool
+        };
+        private AnnotationToolKind GetToolKind(IAnnotationTool tool)
+        {
+            if (tool == _penTool) return AnnotationToolKind.Pen;
+            if (tool == _arrowTool) return AnnotationToolKind.Arrow;
+            if (tool == _mosaicTool) return AnnotationToolKind.Mosaic;
+            if (tool == _rectangleTool) return AnnotationToolKind.Rectangle;
+            if (tool == _circleTool) return AnnotationToolKind.Circle;
+            return AnnotationToolKind.Pen;
+        }
+        private void SelectTool(IAnnotationTool tool)
+        {
+            _currentTool = tool;
+            _toolbar.SetActiveTool(GetToolKind(tool));
+            _drawingManager.SaveState();
+        }
+        private void PickColor()
+        {
+            using ColorDialog colorDialog = new ColorDialog { Color = _currentColor };
+            if (colorDialog.ShowDialog() == DialogResult.OK)
+            {
+                _currentColor = colorDialog.Color;
+                UpdateToolColor();
+            }
+        }
+        private void UpdateToolColor()
+        {
+            _penTool.ToolColor = _currentColor;
+            _arrowTool.ToolColor = _currentColor;
+            _rectangleTool.ToolColor = _currentColor;
+            _circleTool.ToolColor = _currentColor;
+        }
+        private void UpdateToolSize()
+        {
+            _penTool.ToolSize = _currentSize;
+            _arrowTool.ToolSize = _currentSize;
+            _rectangleTool.ToolSize = _currentSize;
+            _circleTool.ToolSize = _currentSize;
+        }
+        private void Undo()
+        {
+            if (_drawingManager.Undo())
+            {
+                _editingImage = _drawingManager.GetCurrentImage();
+                _canvasBox.Image = _editingImage;
+                _canvasBox.Invalidate();
+            }
+        }
+        private void Redo()
+        {
+            if (_drawingManager.Redo())
+            {
+                _editingImage = _drawingManager.GetCurrentImage();
+                _canvasBox.Image = _editingImage;
+                _canvasBox.Invalidate();
+            }
+        }
+        private void CanvasBox_MouseDown(object? sender, MouseEventArgs e)
+        {
+            using Graphics g = Graphics.FromImage(_editingImage);
+            _currentTool.OnMouseDown(e, g, _editingImage);
+            _canvasBox.Invalidate();
+        }
+        private void CanvasBox_MouseMove(object? sender, MouseEventArgs e)
+        {
+            using Graphics g = Graphics.FromImage(_editingImage);
+            _currentTool.OnMouseMove(e, g, _editingImage);
+            _canvasBox.Invalidate();
+        }
+        private void CanvasBox_MouseUp(object? sender, MouseEventArgs e)
+        {
+            using Graphics g = Graphics.FromImage(_editingImage);
+            _currentTool.OnMouseUp(e, g, _editingImage);
+            _canvasBox.Invalidate();
+        }
+        private void CanvasBox_Paint(object? sender, PaintEventArgs e)
+        {
+            _currentTool.DrawPreview(e.Graphics);
+        }
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            switch (e.KeyCode)
+            {
+                case Keys.D1: SelectTool(_penTool); break;
+                case Keys.D2: SelectTool(_arrowTool); break;
+                case Keys.D3: SelectTool(_mosaicTool); break;
+                case Keys.D4: SelectTool(_rectangleTool); break;
+                case Keys.D5: SelectTool(_circleTool); break;
+                case Keys.Z when e.Control: Undo(); break;
+                case Keys.Y when e.Control: Redo(); break;
+                case Keys.Escape:
+                    DialogResult = DialogResult.Cancel;
+                    Close();
+                    break;
+            }
+        }
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            _toolbar?.Close();
+            _toolbar?.Dispose();
+            _drawingManager?.Dispose();
+            _canvasBox?.Dispose();
+            base.OnFormClosed(e);
+        }
+    }
+}
+
+ArrowTool.cs
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+namespace PrintScreenApp
+{
+    public class ArrowTool : IAnnotationTool
+    {
+        public string Name => "Arrow";
+        public Color ToolColor { get; set; } = Color.Red;
+        public int ToolSize { get; set; } = 2;
+        private Point _startPoint;
+        private Point _currentPoint;
+        private bool _isDrawing = false;
+        public void OnMouseDown(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap)
+        {
+            _isDrawing = true;
+            _startPoint = e.Location;
+            _currentPoint = e.Location;
+        }
+        public void OnMouseMove(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap)
+        {
+            if (_isDrawing)
+            {
+                _currentPoint = e.Location;
+            }
+        }
+        public void OnMouseUp(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap)
+        {
+            if (_isDrawing)
+            {
+                _isDrawing = false;
+                _currentPoint = e.Location;
+                Commit(graphics, targetBitmap);
+            }
+        }
+        public void DrawPreview(Graphics graphics)
+        {
+            if (!_isDrawing) return;
+            DrawArrow(graphics, _startPoint, _currentPoint);
+        }
+        public void Commit(Graphics graphics, Bitmap targetBitmap)
+        {
+            DrawArrow(graphics, _startPoint, _currentPoint);
+        }
+        public void Reset()
+        {
+            _isDrawing = false;
+        }
+        private void DrawArrow(Graphics graphics, Point from, Point to)
+        {
+            const int arrowSize = 10;
+            double angle = Math.Atan2(to.Y - from.Y, to.X - from.X);
+            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (Pen pen = new Pen(ToolColor, ToolSize))
+            {
+                graphics.DrawLine(pen, from, to);
+                Point arrowPoint1 = new Point(
+                    (int)(to.X - arrowSize * Math.Cos(angle - Math.PI / 6)),
+                    (int)(to.Y - arrowSize * Math.Sin(angle - Math.PI / 6))
+                );
+                Point arrowPoint2 = new Point(
+                    (int)(to.X - arrowSize * Math.Cos(angle + Math.PI / 6)),
+                    (int)(to.Y - arrowSize * Math.Sin(angle + Math.PI / 6))
+                );
+                graphics.DrawLine(pen, to, arrowPoint1);
+                graphics.DrawLine(pen, to, arrowPoint2);
+                using (Brush brush = new SolidBrush(ToolColor))
+                {
+                    Point[] arrowHead = { to, arrowPoint1, arrowPoint2 };
+                    graphics.FillPolygon(brush, arrowHead);
+                }
+            }
+        }
+    }
+}
+
+AnnotationEditorForm.Designer.cs
+namespace PrintScreenApp
+{
+    partial class AnnotationEditorForm
+    {
+        private System.ComponentModel.IContainer components = null;
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+        private void InitializeComponent()
+        {
+            components = new System.ComponentModel.Container();
+        }
+    }
+}
+
+DrawingManager.cs
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+namespace PrintScreenApp
+{
+    public class DrawingManager
+    {
+        private Stack<Bitmap> _undoStack = new Stack<Bitmap>();
+        private Stack<Bitmap> _redoStack = new Stack<Bitmap>();
+        private Bitmap _baseImage;
+        private Bitmap _currentImage;
+        public DrawingManager(Bitmap baseImage)
+        {
+            _baseImage = (Bitmap)baseImage.Clone();
+            _currentImage = (Bitmap)baseImage.Clone();
+        }
+        public Bitmap GetCurrentImage()
+        {
+            return (Bitmap)_currentImage.Clone();
+        }
+        public void SaveState()
+        {
+            _undoStack.Push((Bitmap)_currentImage.Clone());
+            _redoStack.Clear();
+        }
+        public bool Undo()
+        {
+            if (_undoStack.Count == 0) return false;
+            _redoStack.Push(_currentImage);
+            _currentImage = _undoStack.Pop();
+            return true;
+        }
+        public bool Redo()
+        {
+            if (_redoStack.Count == 0) return false;
+            _undoStack.Push(_currentImage);
+            _currentImage = _redoStack.Pop();
+            return true;
+        }
+        public bool CanUndo() => _undoStack.Count > 0;
+        public bool CanRedo() => _redoStack.Count > 0;
+        public void Reset()
+        {
+            _currentImage.Dispose();
+            _currentImage = (Bitmap)_baseImage.Clone();
+            _undoStack.Clear();
+            _redoStack.Clear();
+        }
+        public void Dispose()
+        {
+            _baseImage?.Dispose();
+            _currentImage?.Dispose();
+            foreach (var img in _undoStack)
+            {
+                img?.Dispose();
+            }
+            _undoStack.Clear();
+            foreach (var img in _redoStack)
+            {
+                img?.Dispose();
+            }
+            _redoStack.Clear();
+        }
+    }
+}
+
+CircleTool.cs
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+namespace PrintScreenApp
+{
+    public class CircleTool : IAnnotationTool
+    {
+        public string Name => "Circle";
+        public Color ToolColor { get; set; } = Color.Red;
+        public int ToolSize { get; set; } = 2;
+        private Point _startPoint;
+        private Point _currentPoint;
+        private bool _isDrawing = false;
+        public void OnMouseDown(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap)
+        {
+            _isDrawing = true;
+            _startPoint = e.Location;
+            _currentPoint = e.Location;
+        }
+        public void OnMouseMove(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap)
+        {
+            if (_isDrawing)
+            {
+                _currentPoint = e.Location;
+            }
+        }
+        public void OnMouseUp(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap)
+        {
+            if (_isDrawing)
+            {
+                _isDrawing = false;
+                _currentPoint = e.Location;
+                Commit(graphics, targetBitmap);
+            }
+        }
+        public void DrawPreview(Graphics graphics)
+        {
+            if (!_isDrawing) return;
+            Rectangle rect = GetRectangleFromPoints(_startPoint, _currentPoint);
+            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (Pen pen = new Pen(ToolColor, ToolSize))
+            {
+                graphics.DrawEllipse(pen, rect);
+            }
+        }
+        public void Commit(Graphics graphics, Bitmap targetBitmap)
+        {
+            Rectangle rect = GetRectangleFromPoints(_startPoint, _currentPoint);
+            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (Pen pen = new Pen(ToolColor, ToolSize))
+            {
+                graphics.DrawEllipse(pen, rect);
+            }
+        }
+        public void Reset()
+        {
+            _isDrawing = false;
+        }
+        private Rectangle GetRectangleFromPoints(Point p1, Point p2)
+        {
+            int x = Math.Min(p1.X, p2.X);
+            int y = Math.Min(p1.Y, p2.Y);
+            int width = Math.Abs(p1.X - p2.X);
+            int height = Math.Abs(p1.Y - p2.Y);
+            return new Rectangle(x, y, width, height);
+        }
+    }
+}
+
+Form1.cs
+using System;
+using System.Drawing;
+using System.IO;
+using System.Windows.Forms;
+namespace PrintScreenApp
+{
+    public partial class Form1 : Form
+    {
+        private ScreenshotHelper _screenshotHelper = null!;
+        private HotKeyManager? _hotKeyManager;
+        public Form1()
+        {
+            InitializeComponent();
+            _screenshotHelper = new ScreenshotHelper();
+            ContextMenuStrip contextMenu = new ContextMenuStrip();
+            contextMenu.Items.Add("显示", null, (s, e) => ShowWindow());
+            contextMenu.Items.Add("隐藏", null, (s, e) => HideWindow());
+            contextMenu.Items.Add("-");
+            contextMenu.Items.Add("退出", null, (s, e) => ExitApplication());
+            this.ContextMenuStrip = contextMenu;
+            this.ShowInTaskbar = true;
+            this.Opacity = 0;   
+            this.WindowState = FormWindowState.Minimized;
+        }
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                cp.ExStyle |= 0x00000080; 
+                return cp;
+            }
+        }
+        protected override void SetVisibleCore(bool value)
+        {
+            if (!IsHandleCreated)
+            {
+                CreateHandle();
+                value = false; 
+            }
+            if (!_isManuallyShowed)
+            {
+                value = false;
+            }
+            base.SetVisibleCore(value);
+        }
+        private bool _isManuallyShowed = false;
+        private void ShowWindow()
+        {
+            _isManuallyShowed = true;
+            this.WindowState = FormWindowState.Normal;
+            this.Show();
+            this.Activate();
+            _isManuallyShowed = false;
+        }
+        private void HideWindow()
+        {
+            this.WindowState = FormWindowState.Minimized;
+            this.Hide();
+        }
+        private void ExitApplication()
+        {
+            if (MessageBox.Show("确定要退出应用吗？", "确认", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                Application.Exit();
+            }
+        }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            InitializeHotKey();
+        }
+        private void InitializeHotKey()
+        {
+            try
+            {
+                _hotKeyManager = new HotKeyManager(Handle);
+                var modifiers = HotKeyManager.KeyModifiers.Ctrl | 
+                                HotKeyManager.KeyModifiers.Shift | 
+                                HotKeyManager.KeyModifiers.Alt;
+                _hotKeyManager.Register(modifiers, Keys.L);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"快捷键注册失败: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+        protected override void WndProc(ref Message message)
+        {
+            if (_hotKeyManager != null && _hotKeyManager.IsHotKeyMessage(message))
+            {
+                Console.WriteLine("[HOTKEY] 快捷键触发 - 启动全屏冻结截图...");
+                StartRegionScreenshot();
+            }
+            base.WndProc(ref message);
+        }
+        private void StartRegionScreenshot()
+        {
+            button1_Click(this, EventArgs.Empty);
+        }
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            if (_hotKeyManager != null)
+            {
+                _hotKeyManager.Unregister();
+                _hotKeyManager.Dispose();
+                _hotKeyManager = null;
+            }
+            base.OnFormClosing(e);
+        }
+        private void button1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var regionForm = new RegionSelectorForm();
+                var result = regionForm.ShowDialog();
+                if (result == DialogResult.OK)
+                {
+                    var image = regionForm.CapturedImage;
+                    if (image != null)
+                    {
+                        var editor = new AnnotationEditorForm(image, regionForm.SelectionScreenBounds);
+                        var editorResult = editor.ShowDialog();
+                        if (editorResult == DialogResult.OK && editor.EditedImage != null)
+                        {
+                            _screenshotHelper.SaveCapturedImage(editor.EditedImage);
+                            Console.WriteLine("[SUCCESS] 截图并编辑已保存");
+                        }
+                        else
+                        {
+                            _screenshotHelper.SaveCapturedImage(image);
+                            Console.WriteLine("[INFO] 截图已保存（未编辑）");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"截图业务出错: {ex.Message}");
+            }
+        }
+        private void button2_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "PNG Files|*.png|JPEG Files|*.jpg|All Files|*.*";
+                sfd.FileName = $"Screenshot_{DateTime.Now:yyyyMMdd_HHmmss}";
+                sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    _screenshotHelper.SaveToFile(sfd.FileName);
+                }
+            }
+        }
+        private void button3_Click(object sender, EventArgs e)
+        {
+            _screenshotHelper.CopyToClipboard();
+        }
+        private void Button_MouseEnter(object sender, EventArgs e)
+        {
+            if (sender is Button btn) btn.BackColor = ControlPaint.Light(btn.BackColor, 0.2f);
+        }
+        private void Button_MouseLeave(object sender, EventArgs e)
+        {
+            if (sender is Button btn)
+            {
+                if (btn.Name == "button1") btn.BackColor = Color.FromArgb(0, 120, 212);
+                else if (btn.Name == "button2") btn.BackColor = Color.FromArgb(107, 105, 214);
+                else if (btn.Name == "button3") btn.BackColor = Color.FromArgb(59, 185, 72);
+            }
+        }
+    }
+}
+
+Form1.Designer.cs
+namespace PrintScreenApp
+{
+    partial class Form1
+    {
+        private System.ComponentModel.IContainer components = null;
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+        #region Windows Form Designer generated code
+        private void InitializeComponent()
+        {
+            button1 = new Button();
+            button2 = new Button();
+            button3 = new Button();
+            labelTitle = new Label();
+            labelHotkey = new Label();
+            SuspendLayout();
+            labelTitle.AutoSize = true;
+            labelTitle.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
+            labelTitle.ForeColor = Color.FromArgb(45, 45, 48);
+            labelTitle.Location = new Point(40, 30);
+            labelTitle.Name = "labelTitle";
+            labelTitle.Size = new Size(200, 35);
+            labelTitle.TabIndex = 10;
+            labelTitle.Text = "Screenshot Tool";
+            labelHotkey.AutoSize = true;
+            labelHotkey.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
+            labelHotkey.ForeColor = Color.FromArgb(120, 120, 120);
+            labelHotkey.Location = new Point(40, 65);
+            labelHotkey.Name = "labelHotkey";
+            labelHotkey.Size = new Size(220, 19);
+            labelHotkey.TabIndex = 11;
+            labelHotkey.Text = "Hotkey: Ctrl + Alt + Q";
+            button1.BackColor = Color.FromArgb(0, 120, 212);
+            button1.Cursor = Cursors.Hand;
+            button1.FlatAppearance.BorderSize = 0;
+            button1.FlatStyle = FlatStyle.Flat;
+            button1.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            button1.ForeColor = Color.White;
+            button1.Location = new Point(40, 130);
+            button1.Name = "button1";
+            button1.Size = new Size(220, 50);
+            button1.TabIndex = 0;
+            button1.Text = "📷 Region";
+            button1.UseVisualStyleBackColor = false;
+            button1.Click += button1_Click;
+            button1.MouseEnter += Button_MouseEnter;
+            button1.MouseLeave += Button_MouseLeave;
+            button2.BackColor = Color.FromArgb(107, 105, 214);
+            button2.Cursor = Cursors.Hand;
+            button2.FlatAppearance.BorderSize = 0;
+            button2.FlatStyle = FlatStyle.Flat;
+            button2.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            button2.ForeColor = Color.White;
+            button2.Location = new Point(40, 200);
+            button2.Name = "button2";
+            button2.Size = new Size(220, 50);
+            button2.TabIndex = 1;
+            button2.Text = "💾 Save";
+            button2.UseVisualStyleBackColor = false;
+            button2.Click += button2_Click;
+            button2.MouseEnter += Button_MouseEnter;
+            button2.MouseLeave += Button_MouseLeave;
+            button3.BackColor = Color.FromArgb(59, 185, 72);
+            button3.Cursor = Cursors.Hand;
+            button3.FlatAppearance.BorderSize = 0;
+            button3.FlatStyle = FlatStyle.Flat;
+            button3.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            button3.ForeColor = Color.White;
+            button3.Location = new Point(40, 270);
+            button3.Name = "button3";
+            button3.Size = new Size(220, 50);
+            button3.TabIndex = 2;
+            button3.Text = "📋 Copy";
+            button3.UseVisualStyleBackColor = false;
+            button3.Click += button3_Click;
+            button3.MouseEnter += Button_MouseEnter;
+            button3.MouseLeave += Button_MouseLeave;
+            AutoScaleDimensions = new SizeF(7F, 17F);
+            AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.FromArgb(255, 255, 255);
+            ClientSize = new Size(320, 380);
+            Controls.Add(labelHotkey);
+            Controls.Add(labelTitle);
+            Controls.Add(button1);
+            Controls.Add(button2);
+            Controls.Add(button3);
+            Font = new Font("Segoe UI", 9F);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
+            Name = "Form1";
+            ShowInTaskbar = true;
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Screenshot Tool";
+            WindowState = FormWindowState.Normal;
+            ResumeLayout(false);
+            PerformLayout();
+        }
+        #endregion
+        private Button button1;
+        private Button button2;
+        private Button button3;
+        private Label labelTitle;
+        private Label labelHotkey;
+    }
+}
+
+HotKeyManager.cs
+using System;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+namespace PrintScreenApp
+{
+    public class HotKeyManager : IDisposable
+    {
+        [Flags]
+        public enum KeyModifiers
+        {
+            None = 0,
+            Alt = 0x0001,
+            Ctrl = 0x0002,
+            Shift = 0x0004,
+            Win = 0x0008,
+            NoRepeat = 0x4000
+        }
+        private const int WmHotkey = 0x0312;
+        private int _hotKeyId;
+        private uint _registeredMod;
+        private uint _registeredVk;
+        private IntPtr _handle;
+        private bool _isRegistered = false;
+        private bool _disposed = false;
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+        public HotKeyManager(IntPtr windowHandle)
+        {
+            if (windowHandle == IntPtr.Zero)
+            {
+                throw new ArgumentException("Window handle cannot be null", nameof(windowHandle));
+            }
+            _handle = windowHandle;
+        }
+        public int Register(KeyModifiers modifiers, Keys keyCode)
+        {
+            ThrowIfDisposed();
+            if (_isRegistered)
+            {
+                throw new InvalidOperationException("Hotkey is already registered. Please unregister first before registering a new one.");
+            }
+            try
+            {
+                uint mod = (uint)modifiers;
+                uint vk = (uint)keyCode & 0xFF;
+                _hotKeyId = Environment.TickCount & 0xBFFF;
+                bool result = RegisterHotKey(_handle, _hotKeyId, mod, vk);
+                if (!result)
+                {
+                    int errorCode = Marshal.GetLastWin32Error();
+                    throw new InvalidOperationException(
+                        $"Failed to register hotkey. Error code: {errorCode}. " +
+                        "Possible reasons: Hotkey is already used by another application or window handle is invalid.");
+                }
+                _registeredMod = mod;
+                _registeredVk = vk;
+                _isRegistered = true;
+                return _hotKeyId;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"Exception occurred while registering hotkey: {ex.Message}", ex);
+            }
+        }
+        public void Unregister()
+        {
+            if (!_isRegistered || _disposed)
+            {
+                return;
+            }
+            UnregisterHotKey(_handle, _hotKeyId);
+            _isRegistered = false;
+        }
+        public bool IsHotKeyMessage(Message message)
+        {
+            if (message.Msg != WmHotkey || !_isRegistered)
+            {
+                return false;
+            }
+            if ((int)message.WParam != _hotKeyId)
+            {
+                return false;
+            }
+            int lParam = message.LParam.ToInt32();
+            uint mod = (uint)(lParam & 0xFFFF);
+            uint vk = (uint)((lParam >> 16) & 0xFFFF);
+            return mod == _registeredMod && vk == _registeredVk;
+        }
+        public bool IsRegistered => _isRegistered;
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+            Unregister();
+            _disposed = true;
+            GC.SuppressFinalize(this);
+        }
+        private void ThrowIfDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(GetType().Name);
+            }
+        }
+        ~HotKeyManager()
+        {
+            Dispose();
+        }
+    }
+}
+
+Program.cs
+using System.Text;
+namespace PrintScreenApp
+{
+    internal static class Program
+    {
+        [STAThread]
+        static void Main()
+        {
+            ApplicationConfiguration.Initialize();
+            Form1 form = new Form1();
+            form.WindowState = FormWindowState.Minimized;
+            form.ShowInTaskbar = true;   
+            Application.Run(form);
+        }
+    }
+}
+
+PenTool.cs
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Windows.Forms;
+namespace PrintScreenApp
+{
+    public class PenTool : IAnnotationTool
+    {
+        public string Name => "Pen";
+        public Color ToolColor { get; set; } = Color.Red;
+        public int ToolSize { get; set; } = 2;
+        private List<Point> _points = new List<Point>();
+        private bool _isDrawing = false;
+        public void OnMouseDown(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap)
+        {
+            _isDrawing = true;
+            _points.Clear();
+            _points.Add(e.Location);
+        }
+        public void OnMouseMove(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap)
+        {
+            if (_isDrawing)
+            {
+                _points.Add(e.Location);
+            }
+        }
+        public void OnMouseUp(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap)
+        {
+            if (_isDrawing)
+            {
+                _isDrawing = false;
+                Commit(graphics, targetBitmap);
+            }
+        }
+        public void DrawPreview(Graphics graphics)
+        {
+            if (_points.Count < 2) return;
+            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (Pen pen = new Pen(ToolColor, ToolSize))
+            {
+                for (int i = 0; i < _points.Count - 1; i++)
+                {
+                    graphics.DrawLine(pen, _points[i], _points[i + 1]);
+                }
+            }
+        }
+        public void Commit(Graphics graphics, Bitmap targetBitmap)
+        {
+            DrawPreview(graphics);
+            _points.Clear();
+        }
+        public void Reset()
+        {
+            _points.Clear();
+            _isDrawing = false;
+        }
+    }
+}
+
+ToolbarForm.cs
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+namespace PrintScreenApp
+{
+    public enum AnnotationToolKind
+    {
+        Pen,
+        Arrow,
+        Mosaic,
+        Rectangle,
+        Circle
+    }
+    public class ToolbarForm : Form
+    {
+        private static readonly Color Background = Color.FromArgb(0x2D, 0x2D, 0x2D);
+        private static readonly Color ButtonHover = Color.FromArgb(0x3E, 0x3E, 0x3E);
+        private static readonly Color ActiveAccent = Color.FromArgb(0x00, 0x78, 0xD4);
+        private static readonly Color SaveAccent = Color.FromArgb(0x2D, 0x8A, 0x45);
+        private static readonly Color CancelAccent = Color.FromArgb(0xC4, 0x2B, 0x1C);
+        private static readonly Color GripColor = Color.FromArgb(0x88, 0x88, 0x88);
+        private const int ToolbarHeight = 44;
+        private const int ButtonHeight = 32;
+        private const int SymbolButtonWidth = 36;
+        private const int HorizontalPadding = 8;
+        private const int Gap = 4;
+        private const int DragHandleWidth = 12;
+        private AnnotationToolKind _activeTool = AnnotationToolKind.Pen;
+        private Button? _activeButton;
+        private Point _mouseOffset;
+        private bool _isDragging;
+        public event EventHandler<AnnotationToolKind>? ToolSelected;
+        public event EventHandler? ColorPickRequested;
+        public event EventHandler<int>? BrushSizeChanged;
+        public event EventHandler? UndoRequested;
+        public event EventHandler? RedoRequested;
+        public event EventHandler? SaveRequested;
+        public event EventHandler? CancelRequested;
+        public ToolbarForm()
+        {
+            InitializeForm();
+            BuildToolbar();
+        }
+        private void InitializeForm()
+        {
+            FormBorderStyle = FormBorderStyle.None;
+            ShowInTaskbar = false;
+            TopMost = true;
+            StartPosition = FormStartPosition.Manual;
+            BackColor = Background;
+            ForeColor = Color.White;
+            Font = new Font("Segoe UI Emoji", 11F, FontStyle.Regular);
+            DoubleBuffered = true;
+            MouseDown += Toolbar_MouseDown;
+            MouseMove += Toolbar_MouseMove;
+            MouseUp += Toolbar_MouseUp;
+        }
+        private void BuildToolbar()
+        {
+            var dragHandle = CreateDragHandle();
+            Controls.Add(dragHandle);
+            int x = DragHandleWidth + HorizontalPadding;
+            int y = (ToolbarHeight - ButtonHeight) / 2;
+            _activeButton = AddToolButton(ref x, y, "✏️", AnnotationToolKind.Pen);
+            AddToolButton(ref x, y, "↗️", AnnotationToolKind.Arrow);
+            AddToolButton(ref x, y, "▦", AnnotationToolKind.Mosaic);
+            AddToolButton(ref x, y, "⬜", AnnotationToolKind.Rectangle);
+            AddToolButton(ref x, y, "⭕", AnnotationToolKind.Circle);
+            x += Gap;
+            AddSeparator(x, y);
+            x += 8;
+            var colorBtn = CreateSymbolButton("🎨");
+            colorBtn.Location = new Point(x, y);
+            colorBtn.Click += (_, _) => ColorPickRequested?.Invoke(this, EventArgs.Empty);
+            Controls.Add(colorBtn);
+            x += colorBtn.Width + Gap;
+            var sizeTracker = new TrackBar
+            {
+                Location = new Point(x, y - 2),
+                Size = new Size(80, 32),
+                Minimum = 1,
+                Maximum = 15,
+                Value = 2,
+                TickStyle = TickStyle.None,
+                BackColor = Background
+            };
+            sizeTracker.ValueChanged += (_, _) => BrushSizeChanged?.Invoke(this, sizeTracker.Value);
+            Controls.Add(sizeTracker);
+            x += sizeTracker.Width + Gap;
+            AddSeparator(x, y);
+            x += 8;
+            var undoBtn = CreateSymbolButton("↩");
+            undoBtn.Location = new Point(x, y);
+            undoBtn.Click += (_, _) => UndoRequested?.Invoke(this, EventArgs.Empty);
+            Controls.Add(undoBtn);
+            x += undoBtn.Width + Gap;
+            var redoBtn = CreateSymbolButton("↪");
+            redoBtn.Location = new Point(x, y);
+            redoBtn.Click += (_, _) => RedoRequested?.Invoke(this, EventArgs.Empty);
+            Controls.Add(redoBtn);
+            x += redoBtn.Width + Gap;
+            AddSeparator(x, y);
+            x += 8;
+            var saveBtn = CreateSymbolButton("✔️");
+            saveBtn.Location = new Point(x, y);
+            saveBtn.BackColor = SaveAccent;
+            saveBtn.FlatAppearance.MouseOverBackColor = ControlPaint.Light(SaveAccent, 0.15f);
+            saveBtn.Click += (_, _) => SaveRequested?.Invoke(this, EventArgs.Empty);
+            Controls.Add(saveBtn);
+            x += saveBtn.Width + Gap;
+            var cancelBtn = CreateSymbolButton("❌");
+            cancelBtn.Location = new Point(x, y);
+            cancelBtn.BackColor = CancelAccent;
+            cancelBtn.FlatAppearance.MouseOverBackColor = ControlPaint.Light(CancelAccent, 0.15f);
+            cancelBtn.Click += (_, _) => CancelRequested?.Invoke(this, EventArgs.Empty);
+            Controls.Add(cancelBtn);
+            x += cancelBtn.Width + HorizontalPadding;
+            ClientSize = new Size(x, ToolbarHeight);
+        }
+        private Panel CreateDragHandle()
+        {
+            var handle = new Panel
+            {
+                Location = new Point(0, 0),
+                Size = new Size(DragHandleWidth, ToolbarHeight),
+                BackColor = Background,
+                Cursor = Cursors.SizeAll
+            };
+            handle.Paint += DragHandle_Paint;
+            WireDragEvents(handle);
+            return handle;
+        }
+        private void DragHandle_Paint(object? sender, PaintEventArgs e)
+        {
+            const int dotSize = 3;
+            const int dotGap = 4;
+            int centerX = DragHandleWidth / 2;
+            int totalHeight = dotSize * 3 + dotGap * 2;
+            int startY = (ToolbarHeight - totalHeight) / 2;
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using var brush = new SolidBrush(GripColor);
+            for (int i = 0; i < 3; i++)
+            {
+                int y = startY + i * (dotSize + dotGap);
+                e.Graphics.FillEllipse(brush, centerX - dotSize / 2, y, dotSize, dotSize);
+            }
+        }
+        private void WireDragEvents(Control control)
+        {
+            control.MouseDown += Toolbar_MouseDown;
+            control.MouseMove += Toolbar_MouseMove;
+            control.MouseUp += Toolbar_MouseUp;
+        }
+        private void Toolbar_MouseDown(object? sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left)
+            {
+                return;
+            }
+            Point clientPoint = sender is Control ctrl && ctrl != this
+                ? PointToClient(ctrl.PointToScreen(e.Location))
+                : e.Location;
+            _mouseOffset = new Point(-clientPoint.X, -clientPoint.Y);
+            _isDragging = true;
+            Capture = true;
+        }
+        private void Toolbar_MouseMove(object? sender, MouseEventArgs e)
+        {
+            if (!_isDragging)
+            {
+                return;
+            }
+            Location = new Point(
+                MousePosition.X + _mouseOffset.X,
+                MousePosition.Y + _mouseOffset.Y);
+        }
+        private void Toolbar_MouseUp(object? sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left)
+            {
+                return;
+            }
+            EndDrag();
+        }
+        private void EndDrag()
+        {
+            if (!_isDragging)
+            {
+                return;
+            }
+            _isDragging = false;
+            Capture = false;
+        }
+        private Button AddToolButton(ref int x, int y, string symbol, AnnotationToolKind kind)
+        {
+            var btn = CreateSymbolButton(symbol);
+            btn.Location = new Point(x, y);
+            btn.Tag = kind;
+            btn.Click += ToolButton_Click;
+            Controls.Add(btn);
+            if (kind == _activeTool)
+            {
+                SetActiveButton(btn, kind);
+            }
+            x += btn.Width + Gap;
+            return btn;
+        }
+        private void ToolButton_Click(object? sender, EventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is AnnotationToolKind kind)
+            {
+                SetActiveButton(btn, kind);
+                ToolSelected?.Invoke(this, kind);
+            }
+        }
+        public void SetActiveTool(AnnotationToolKind kind)
+        {
+            foreach (Control control in Controls)
+            {
+                if (control is Button btn && btn.Tag is AnnotationToolKind toolKind && toolKind == kind)
+                {
+                    SetActiveButton(btn, kind);
+                    return;
+                }
+            }
+        }
+        private void SetActiveButton(Button btn, AnnotationToolKind kind)
+        {
+            foreach (Control control in Controls)
+            {
+                if (control is Button toolBtn && toolBtn.Tag is AnnotationToolKind)
+                {
+                    toolBtn.BackColor = Background;
+                    toolBtn.ForeColor = Color.White;
+                }
+            }
+            _activeTool = kind;
+            _activeButton = btn;
+            btn.BackColor = ActiveAccent;
+            btn.ForeColor = Color.White;
+        }
+        private Button CreateSymbolButton(string symbol)
+        {
+            var btn = new Button
+            {
+                Text = symbol,
+                Size = new Size(SymbolButtonWidth, ButtonHeight),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Background,
+                ForeColor = Color.White,
+                Cursor = Cursors.Hand,
+                TabStop = false,
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+            btn.FlatAppearance.BorderSize = 0;
+            btn.FlatAppearance.MouseOverBackColor = ButtonHover;
+            return btn;
+        }
+        private void AddSeparator(int x, int y)
+        {
+            Controls.Add(new Panel
+            {
+                BackColor = Color.FromArgb(0x55, 0x55, 0x55),
+                Location = new Point(x, y + 4),
+                Size = new Size(1, ButtonHeight - 8)
+            });
+        }
+        public void UpdatePosition(Rectangle selectionRect)
+        {
+            const int gapBelow = 5;
+            Screen screen = Screen.FromRectangle(selectionRect);
+            Rectangle work = screen.WorkingArea;
+            Left = selectionRect.Left + (selectionRect.Width - Width) / 2;
+            Top = selectionRect.Bottom + gapBelow;
+            if (Top + Height > work.Bottom)
+            {
+                Top = selectionRect.Bottom - Height - gapBelow;
+            }
+            Left = Math.Max(work.Left, Math.Min(Left, work.Right - Width));
+            Top = Math.Max(work.Top, Math.Min(Top, work.Bottom - Height));
+        }
+    }
+}
+
+ScreenshotHelper.cs
+using System;
+using System.Drawing;
+using System.IO;
+using System.Windows.Forms;
+namespace PrintScreenApp
+{
+    public class ScreenshotHelper
+    {
+        private Bitmap? _capturedImage;
+        public Bitmap? CaptureRegion()
+        {
+            var regionSelector = new RegionSelectorForm();
+            if (regionSelector.ShowDialog() == DialogResult.OK)
+            {
+                _capturedImage = regionSelector.CapturedImage;
+                return _capturedImage;
+            }
+            return null;
+        }
+        public void SaveCapturedImage(Bitmap image)
+        {
+            _capturedImage = image;
+        }
+        public bool SaveToFile(string filePath)
+        {
+            if (_capturedImage == null)
+            {
+                MessageBox.Show("No screenshot captured", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+            try
+            {
+                string? directory = Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+                _capturedImage.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
+                MessageBox.Show($"Screenshot saved successfully.\n{filePath}", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to save: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+        }
+        public bool CopyToClipboard()
+        {
+            if (_capturedImage == null)
+            {
+                MessageBox.Show("No screenshot captured", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+            try
+            {
+                Clipboard.SetImage(_capturedImage);
+                MessageBox.Show("Screenshot copied to clipboard!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to copy: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+        }
+        public Bitmap? GetCapturedImage()
+        {
+            return _capturedImage;
+        }
+    }
+}
+
+RegionSelectorForm.cs
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+namespace PrintScreenApp
+{
+    public partial class RegionSelectorForm : Form
+    {
+        private Bitmap _fullScreenshot = null!;
+        private Point _startPoint;
+        private Point _endPoint;
+        private bool _isSelecting = false;
+        private Rectangle _selectionRectangle = Rectangle.Empty;
+        private Bitmap _overlayBuffer = null!;
+        public Bitmap CapturedImage { get; private set; } = null!;
+        public Rectangle SelectionRegion { get; private set; }
+        public Rectangle SelectionScreenBounds { get; private set; }
+        public RegionSelectorForm()
+        {
+            InitializeComponent();
+            ConfigureForm();
+            CaptureFullScreen();
+        }
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                const int WS_EX_LAYERED = 0x00080000;
+                CreateParams cp = base.CreateParams;
+                cp.ExStyle |= WS_EX_LAYERED;
+                return cp;
+            }
+        }
+        private void ConfigureForm()
+        {
+            Screen screen = Screen.FromPoint(Cursor.Position);
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.ShowInTaskbar = false;
+            this.StartPosition = FormStartPosition.Manual;
+            this.Bounds = screen.Bounds;
+            this.BackColor = Color.Black;
+            this.Opacity = 0;
+            this.TopMost = true;
+            this.Cursor = Cursors.Cross;
+            this.DoubleBuffered = true;
+        }
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            this.Opacity = 0.3;
+        }
+        private void CaptureFullScreen()
+        {
+            try
+            {
+                Screen screen = Screen.FromPoint(Cursor.Position);
+                Rectangle screenBounds = screen.Bounds;
+                _fullScreenshot = new Bitmap(screenBounds.Width, screenBounds.Height);
+                using (Graphics g = Graphics.FromImage(_fullScreenshot))
+                {
+                    g.CopyFromScreen(screenBounds.Location, Point.Empty, screenBounds.Size);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Screenshot failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.DialogResult = DialogResult.Cancel;
+                this.Close();
+            }
+        }
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            base.OnMouseDown(e);
+            if (e.Button == MouseButtons.Left)
+            {
+                _isSelecting = true;
+                _startPoint = e.Location;
+                _selectionRectangle = Rectangle.Empty;
+            }
+        }
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            base.OnMouseMove(e);
+            if (_isSelecting)
+            {
+                _endPoint = e.Location;
+                _selectionRectangle = GetRectangleFromPoints(_startPoint, _endPoint);
+                this.Invalidate();
+            }
+        }
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            base.OnMouseUp(e);
+            if (e.Button == MouseButtons.Left && _isSelecting)
+            {
+                _isSelecting = false;
+                _endPoint = e.Location;
+                _selectionRectangle = GetRectangleFromPoints(_startPoint, _endPoint);
+                if (_selectionRectangle.Width > 0 && _selectionRectangle.Height > 0)
+                {
+                    CaptureSelection();
+                    SelectionRegion = _selectionRectangle;
+                    SelectionScreenBounds = RectangleToScreen(_selectionRectangle);
+                    this.DialogResult = DialogResult.OK;
+                }
+                this.Close();
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                this.DialogResult = DialogResult.Cancel;
+                this.Close();
+            }
+        }
+        private void CaptureSelection()
+        {
+            try
+            {
+                CapturedImage = new Bitmap(_selectionRectangle.Width, _selectionRectangle.Height);
+                using (Graphics g = Graphics.FromImage(CapturedImage))
+                {
+                    g.DrawImage(_fullScreenshot, 0, 0, _selectionRectangle, GraphicsUnit.Pixel);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to save screenshot: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            if (!_selectionRectangle.IsEmpty && _fullScreenshot != null)
+            {
+                try
+                {
+                    DrawMaskLayer(e);
+                    DrawHighlightedRegion(e);
+                    DrawSelectionBorder(e);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Drawing error: {ex.Message}");
+                }
+            }
+        }
+        private void DrawMaskLayer(PaintEventArgs e)
+        {
+            using (Brush maskBrush = new SolidBrush(Color.FromArgb(77, 0, 0, 0)))  
+            {
+                e.Graphics.FillRectangle(maskBrush, this.ClientRectangle);
+            }
+        }
+        private void DrawHighlightedRegion(PaintEventArgs e)
+        {
+            if (_selectionRectangle.Width > 0 && _selectionRectangle.Height > 0)
+            {
+                e.Graphics.DrawImage(
+                    _fullScreenshot,
+                    _selectionRectangle,
+                    _selectionRectangle,
+                    GraphicsUnit.Pixel);
+            }
+        }
+        private void DrawSelectionBorder(PaintEventArgs e)
+        {
+            using (Pen borderPen = new Pen(Color.FromArgb(255, 0, 120, 215), 2))
+            {
+                e.Graphics.DrawRectangle(borderPen, _selectionRectangle);
+            }
+            DrawCornerMarkers(e);
+            DrawSizeInfo(e);
+        }
+        private void DrawCornerMarkers(PaintEventArgs e)
+        {
+            const int markerSize = 6;
+            using (Brush markerBrush = new SolidBrush(Color.FromArgb(255, 0, 120, 215)))
+            {
+                e.Graphics.FillRectangle(markerBrush,
+                    _selectionRectangle.Left - markerSize / 2,
+                    _selectionRectangle.Top - markerSize / 2,
+                    markerSize, markerSize);
+                e.Graphics.FillRectangle(markerBrush,
+                    _selectionRectangle.Right - markerSize / 2,
+                    _selectionRectangle.Top - markerSize / 2,
+                    markerSize, markerSize);
+                e.Graphics.FillRectangle(markerBrush,
+                    _selectionRectangle.Left - markerSize / 2,
+                    _selectionRectangle.Bottom - markerSize / 2,
+                    markerSize, markerSize);
+                e.Graphics.FillRectangle(markerBrush,
+                    _selectionRectangle.Right - markerSize / 2,
+                    _selectionRectangle.Bottom - markerSize / 2,
+                    markerSize, markerSize);
+            }
+        }
+        private void DrawSizeInfo(PaintEventArgs e)
+        {
+            string sizeText = $"{_selectionRectangle.Width} × {_selectionRectangle.Height}";
+            using (Font infoFont = new Font("Segoe UI", 12, FontStyle.Bold))
+            using (Brush textBrush = new SolidBrush(Color.White))
+            using (Brush shadowBrush = new SolidBrush(Color.Black))
+            {
+                SizeF textSize = e.Graphics.MeasureString(sizeText, infoFont);
+                float textX = _selectionRectangle.Left + (_selectionRectangle.Width - textSize.Width) / 2;
+                float textY = _selectionRectangle.Bottom + 10;
+                e.Graphics.DrawString(sizeText, infoFont, shadowBrush, textX + 1, textY + 1);
+                e.Graphics.DrawString(sizeText, infoFont, textBrush, textX, textY);
+            }
+        }
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if (e.KeyCode == Keys.Escape)
+            {
+                this.DialogResult = DialogResult.Cancel;
+                this.Close();
+            }
+        }
+        private Rectangle GetRectangleFromPoints(Point p1, Point p2)
+        {
+            int x = Math.Min(p1.X, p2.X);
+            int y = Math.Min(p1.Y, p2.Y);
+            int width = Math.Abs(p1.X - p2.X);
+            int height = Math.Abs(p1.Y - p2.Y);
+            return new Rectangle(x, y, width, height);
+        }
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            _fullScreenshot?.Dispose();
+            _overlayBuffer?.Dispose();
+            base.OnFormClosing(e);
+        }
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(800, 600);
+            this.Name = "RegionSelectorForm";
+            this.Text = "RegionSelectorForm";
+            this.ResumeLayout(false);
+        }
+    }
+}
+
+RectangleTool.cs
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+namespace PrintScreenApp
+{
+    public class RectangleTool : IAnnotationTool
+    {
+        public string Name => "Rectangle";
+        public Color ToolColor { get; set; } = Color.Red;
+        public int ToolSize { get; set; } = 2;
+        private Point _startPoint;
+        private Point _currentPoint;
+        private bool _isDrawing = false;
+        public void OnMouseDown(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap)
+        {
+            _isDrawing = true;
+            _startPoint = e.Location;
+            _currentPoint = e.Location;
+        }
+        public void OnMouseMove(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap)
+        {
+            if (_isDrawing)
+            {
+                _currentPoint = e.Location;
+            }
+        }
+        public void OnMouseUp(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap)
+        {
+            if (_isDrawing)
+            {
+                _isDrawing = false;
+                _currentPoint = e.Location;
+                Commit(graphics, targetBitmap);
+            }
+        }
+        public void DrawPreview(Graphics graphics)
+        {
+            if (!_isDrawing) return;
+            Rectangle rect = GetRectangleFromPoints(_startPoint, _currentPoint);
+            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (Pen pen = new Pen(ToolColor, ToolSize))
+            {
+                graphics.DrawRectangle(pen, rect);
+            }
+        }
+        public void Commit(Graphics graphics, Bitmap targetBitmap)
+        {
+            Rectangle rect = GetRectangleFromPoints(_startPoint, _currentPoint);
+            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (Pen pen = new Pen(ToolColor, ToolSize))
+            {
+                graphics.DrawRectangle(pen, rect);
+            }
+        }
+        public void Reset()
+        {
+            _isDrawing = false;
+        }
+        private Rectangle GetRectangleFromPoints(Point p1, Point p2)
+        {
+            int x = Math.Min(p1.X, p2.X);
+            int y = Math.Min(p1.Y, p2.Y);
+            int width = Math.Abs(p1.X - p2.X);
+            int height = Math.Abs(p1.Y - p2.Y);
+            return new Rectangle(x, y, width, height);
+        }
+    }
+}
+
+IAnnotationTool.cs
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+namespace PrintScreenApp
+{
+    public interface IAnnotationTool
+    {
+        string Name { get; }
+        Color ToolColor { get; set; }
+        int ToolSize { get; set; }
+        void OnMouseDown(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap);
+        void OnMouseMove(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap);
+        void OnMouseUp(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap);
+        void DrawPreview(Graphics graphics);
+        void Commit(Graphics graphics, Bitmap targetBitmap);
+        void Reset();
+    }
+}
+
+MosaicTool.cs
+using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.Windows.Forms;
+namespace PrintScreenApp
+{
+    public class MosaicTool : IAnnotationTool
+    {
+        public string Name => "Mosaic";
+        public Color ToolColor { get; set; } = Color.Black;
+        public int ToolSize { get; set; } = 10;
+        private Point _startPoint;
+        private Point _endPoint;
+        private bool _isDrawing = false;
+        private Rectangle _mosaicRect = Rectangle.Empty;
+        public void OnMouseDown(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap)
+        {
+            _isDrawing = true;
+            _startPoint = e.Location;
+            _endPoint = e.Location;
+        }
+        public void OnMouseMove(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap)
+        {
+            if (_isDrawing)
+            {
+                _endPoint = e.Location;
+                _mosaicRect = GetRectangleFromPoints(_startPoint, _endPoint);
+            }
+        }
+        public void OnMouseUp(MouseEventArgs e, Graphics graphics, Bitmap targetBitmap)
+        {
+            if (_isDrawing)
+            {
+                _isDrawing = false;
+                _endPoint = e.Location;
+                _mosaicRect = GetRectangleFromPoints(_startPoint, _endPoint);
+                if (_mosaicRect.Width > 0 && _mosaicRect.Height > 0)
+                {
+                    Commit(graphics, targetBitmap);
+                }
+            }
+        }
+        public void DrawPreview(Graphics graphics)
+        {
+            if (!_isDrawing || _mosaicRect.IsEmpty) return;
+            DrawMosaicRegion(graphics, _mosaicRect);
+        }
+        public void Commit(Graphics graphics, Bitmap targetBitmap)
+        {
+            if (_mosaicRect.IsEmpty) return;
+            ApplyMosaicEffect(targetBitmap, _mosaicRect);
+            DrawMosaicRegion(graphics, _mosaicRect);
+        }
+        public void Reset()
+        {
+            _isDrawing = false;
+            _mosaicRect = Rectangle.Empty;
+        }
+        private Rectangle GetRectangleFromPoints(Point p1, Point p2)
+        {
+            int x = Math.Min(p1.X, p2.X);
+            int y = Math.Min(p1.Y, p2.Y);
+            int width = Math.Abs(p1.X - p2.X);
+            int height = Math.Abs(p1.Y - p2.Y);
+            return new Rectangle(x, y, width, height);
+        }
+        private void ApplyMosaicEffect(Bitmap bitmap, Rectangle rect)
+        {
+            int blockSize = ToolSize;
+            for (int y = rect.Top; y < rect.Bottom; y += blockSize)
+            {
+                for (int x = rect.Left; x < rect.Right; x += blockSize)
+                {
+                    Rectangle blockRect = new Rectangle(
+                        x, y,
+                        Math.Min(blockSize, rect.Right - x),
+                        Math.Min(blockSize, rect.Bottom - y)
+                    );
+                    Color avgColor = GetAverageColor(bitmap, blockRect);
+                    using (Brush brush = new SolidBrush(avgColor))
+                    {
+                        using (Graphics g = Graphics.FromImage(bitmap))
+                        {
+                            g.FillRectangle(brush, blockRect);
+                        }
+                    }
+                }
+            }
+        }
+        private Color GetAverageColor(Bitmap bitmap, Rectangle rect)
+        {
+            long r = 0, g = 0, b = 0;
+            int count = 0;
+            for (int y = rect.Top; y < rect.Bottom; y++)
+            {
+                for (int x = rect.Left; x < rect.Right; x++)
+                {
+                    if (bitmap.Width > x && bitmap.Height > y && x >= 0 && y >= 0)
+                    {
+                        Color pixel = bitmap.GetPixel(x, y);
+                        r += pixel.R;
+                        g += pixel.G;
+                        b += pixel.B;
+                        count++;
+                    }
+                }
+            }
+            if (count == 0) return Color.Black;
+            return Color.FromArgb(
+                (int)(r / count),
+                (int)(g / count),
+                (int)(b / count)
+            );
+        }
+        private void DrawMosaicRegion(Graphics graphics, Rectangle rect)
+        {
+            using (Brush brush = new HatchBrush(System.Drawing.Drawing2D.HatchStyle.DarkDownwardDiagonal, Color.Gray, Color.LightGray))
+            {
+                graphics.FillRectangle(brush, rect);
+            }
+            using (Pen pen = new Pen(Color.LightGray, 1))
+            {
+                graphics.DrawRectangle(pen, rect);
+            }
+        }
+    }
+}
