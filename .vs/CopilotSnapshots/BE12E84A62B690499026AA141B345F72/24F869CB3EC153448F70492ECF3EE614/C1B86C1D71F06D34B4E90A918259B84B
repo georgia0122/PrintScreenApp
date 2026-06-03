@@ -1,0 +1,138 @@
+﻿using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace PrintScreenApp
+{
+    /// <summary>
+    /// 区域选择表单，允许用户在屏幕上选择要截图的区域
+    /// </summary>
+    public partial class RegionSelectorForm : Form
+    {
+        private Bitmap _fullScreenshot;
+        private Point _startPoint;
+        private Point _endPoint;
+        private bool _isSelecting = false;
+        private Rectangle _selectionRectangle = Rectangle.Empty;
+
+        public Bitmap CapturedImage { get; private set; }
+
+        public RegionSelectorForm()
+        {
+            InitializeComponent();
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.WindowState = FormWindowState.Maximized;
+            this.BackColor = Color.Black;
+            this.Opacity = 0.3;
+            this.TopMost = true;
+            this.Cursor = Cursors.Cross;
+
+            // 捕获全屏
+            _fullScreenshot = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
+            using (Graphics g = Graphics.FromImage(_fullScreenshot))
+            {
+                g.CopyFromScreen(Point.Empty, Point.Empty, Screen.PrimaryScreen.Bounds.Size);
+            }
+        }
+
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            base.OnMouseDown(e);
+            if (e.Button == MouseButtons.Left)
+            {
+                _isSelecting = true;
+                _startPoint = e.Location;
+                _selectionRectangle = Rectangle.Empty;
+            }
+        }
+
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            base.OnMouseMove(e);
+            if (_isSelecting)
+            {
+                _endPoint = e.Location;
+                _selectionRectangle = GetRectangleFromPoints(_startPoint, _endPoint);
+                this.Invalidate();
+            }
+        }
+
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            base.OnMouseUp(e);
+            if (e.Button == MouseButtons.Left && _isSelecting)
+            {
+                _isSelecting = false;
+                _endPoint = e.Location;
+                _selectionRectangle = GetRectangleFromPoints(_startPoint, _endPoint);
+
+                if (_selectionRectangle.Width > 0 && _selectionRectangle.Height > 0)
+                {
+                    // 从全屏截图中提取选中区域
+                    CapturedImage = new Bitmap(_selectionRectangle.Width, _selectionRectangle.Height);
+                    using (Graphics g = Graphics.FromImage(CapturedImage))
+                    {
+                        g.DrawImage(_fullScreenshot, 0, 0, _selectionRectangle, GraphicsUnit.Pixel);
+                    }
+                    this.DialogResult = DialogResult.OK;
+                }
+                this.Close();
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                this.DialogResult = DialogResult.Cancel;
+                this.Close();
+            }
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+
+            if (!_selectionRectangle.IsEmpty)
+            {
+                // 绘制选中区域的边框
+                using (Pen pen = new Pen(Color.Red, 2))
+                {
+                    e.Graphics.DrawRectangle(pen, _selectionRectangle);
+                }
+
+                // 绘制半透明选中区域
+                using (Brush brush = new SolidBrush(Color.FromArgb(100, 0, 120, 215)))
+                {
+                    e.Graphics.FillRectangle(brush, _selectionRectangle);
+                }
+            }
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if (e.KeyCode == Keys.Escape)
+            {
+                this.DialogResult = DialogResult.Cancel;
+                this.Close();
+            }
+        }
+
+        private Rectangle GetRectangleFromPoints(Point p1, Point p2)
+        {
+            int x = Math.Min(p1.X, p2.X);
+            int y = Math.Min(p1.Y, p2.Y);
+            int width = Math.Abs(p1.X - p2.X);
+            int height = Math.Abs(p1.Y - p2.Y);
+            return new Rectangle(x, y, width, height);
+        }
+
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(800, 600);
+            this.Name = "RegionSelectorForm";
+            this.Text = "RegionSelectorForm";
+            this.ResumeLayout(false);
+        }
+    }
+}

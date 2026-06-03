@@ -1,0 +1,22 @@
+﻿using System.Text;
+
+namespace PrintScreenApp
+{
+    internal static class Program
+    {
+        /// <summary>
+        ///  The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main()
+        {
+            // 设置UTF-8编码，确保中文正确显示
+            Console.OutputEncoding = Encoding.UTF8;
+
+            // To customize application configuration such as set high DPI settings or default font,
+            // see https://aka.ms/applicationconfiguration.
+            ApplicationConfiguration.Initialize();
+            Application.Run(new Form1());
+        }
+    }
+}

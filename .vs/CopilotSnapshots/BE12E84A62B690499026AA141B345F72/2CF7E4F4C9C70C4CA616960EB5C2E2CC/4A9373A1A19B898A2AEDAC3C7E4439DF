@@ -1,0 +1,139 @@
+﻿using System;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Windows.Forms;
+
+namespace PrintScreenApp
+{
+    public partial class Form1 : Form
+    {
+        private ScreenshotHelper _screenshotHelper;
+        private HotKeyManager _hotKeyManager;
+
+        public Form1()
+        {
+            InitializeComponent();
+            _screenshotHelper = new ScreenshotHelper();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            InitializeHotKey();
+        }
+
+        /// <summary>
+        /// 初始化全局快捷键（Ctrl + Alt + A）
+        /// </summary>
+        private void InitializeHotKey()
+        {
+            try
+            {
+                _hotKeyManager = new HotKeyManager(Handle);
+                var modifiers = HotKeyManager.KeyModifiers.Ctrl | HotKeyManager.KeyModifiers.Alt;
+                _hotKeyManager.Register(modifiers, Keys.A);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"快捷键注册失败: {ex.Message}\n\n应用程序仍可正常使用，但无法通过快捷键启动截图工具。",
+                    "快捷键注册提示",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+        }
+
+        /// <summary>
+        /// 重写WndProc以处理快捷键消息
+        /// </summary>
+        protected override void WndProc(ref Message message)
+        {
+            if (_hotKeyManager != null && _hotKeyManager.IsHotKeyMessage(message))
+            {
+                ShowOrActivate();
+            }
+            base.WndProc(ref message);
+        }
+
+        /// <summary>
+        /// 显示或激活窗口
+        /// </summary>
+        private void ShowOrActivate()
+        {
+            if (WindowState == FormWindowState.Minimized)
+            {
+                WindowState = FormWindowState.Normal;
+            }
+            Activate();
+            BringToFront();
+        }
+
+        /// <summary>
+        /// 在窗口关闭时清理资源
+        /// </summary>
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            _hotKeyManager?.Dispose();
+            base.OnFormClosing(e);
+        }
+
+        // ????
+        private void button1_Click(object sender, EventArgs e)
+        {
+            var image = _screenshotHelper.CaptureRegion();
+            if (image != null)
+            {
+                MessageBox.Show("???????", "??", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        // ????
+        private void button2_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "PNG ??|*.png|JPEG ??|*.jpg|????|*.*";
+                sfd.FileName = $"Screenshot_{DateTime.Now:yyyyMMdd_HHmmss}";
+                sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    _screenshotHelper.SaveToFile(sfd.FileName);
+                }
+            }
+        }
+
+        // ??????
+        private void button3_Click(object sender, EventArgs e)
+        {
+            _screenshotHelper.CopyToClipboard();
+        }
+
+        /// <summary>
+        /// 按钮悬停效果 - 提亮背景
+        /// </summary>
+        private void Button_MouseEnter(object sender, EventArgs e)
+        {
+            if (sender is Button btn)
+            {
+                btn.BackColor = ControlPaint.Light(btn.BackColor, 0.2f);
+            }
+        }
+
+        /// <summary>
+        /// 按钮离开效果 - 恢复颜色
+        /// </summary>
+        private void Button_MouseLeave(object sender, EventArgs e)
+        {
+            if (sender is Button btn)
+            {
+                // 恢复原始颜色
+                if (btn.Name == "button1")
+                    btn.BackColor = Color.FromArgb(0, 120, 212);
+                else if (btn.Name == "button2")
+                    btn.BackColor = Color.FromArgb(107, 105, 214);
+                else if (btn.Name == "button3")
+                    btn.BackColor = Color.FromArgb(59, 185, 72);
+            }
+        }
+    }
+}

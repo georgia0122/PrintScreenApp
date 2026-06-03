@@ -1,0 +1,52 @@
+﻿// 1. 🌟 第一步：把这些“引用”写在文件的最最顶部（如果已经有了就不需要重复写）
+using System;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Windows.Forms;
+
+namespace PrintScreenApp
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            // 这里是窗体加载时执行的代码，暂时空着不用管它
+        }
+
+        // 2. 🌟 第二步：把下面这段“核心截图逻辑”写在类的内部，和其他方法的尾部平齐
+        private void CaptureScreen()
+        {
+            // 获取主屏幕的分辨率大小
+            Rectangle bounds = Screen.PrimaryScreen.Bounds;
+
+            // 创建一张和屏幕一样大的空白画布
+            using (Bitmap bitmap = new Bitmap(bounds.Width, bounds.Height))
+            {
+                // 创建画笔对象
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    // 将屏幕屏幕内容“复制”到画布上
+                    g.CopyFromScreen(Point.Empty, Point.Empty, bounds.Size);
+                }
+
+                // 保存图片到本地桌面（为了方便你找，我把路径改成了桌面）
+                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string filePath = System.IO.Path.Combine(desktopPath, "Capture_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png");
+
+                bitmap.Save(filePath, ImageFormat.Png);
+
+                MessageBox.Show($"截图成功！已保存至桌面:\n{filePath}");
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            CaptureScreen();
+        }
+    }
+}

@@ -1,0 +1,155 @@
+﻿using System;
+using System.Drawing;
+using System.IO;
+using System.Windows.Forms;
+
+namespace PrintScreenApp
+{
+    public partial class Form1 : Form
+    {
+        private ScreenshotHelper _screenshotHelper;
+        private HotKeyManager _hotKeyManager;
+
+        public Form1()
+        {
+            InitializeComponent();
+            _screenshotHelper = new ScreenshotHelper();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            InitializeHotKey();
+        }
+
+        /// <summary>
+        /// 初始化快捷键 Ctrl + Shift + A
+        /// </summary>
+        private void InitializeHotKey()
+        {
+            try
+            {
+                _hotKeyManager = new HotKeyManager(Handle);
+                var modifiers = HotKeyManager.KeyModifiers.Ctrl | HotKeyManager.KeyModifiers.Shift;
+                _hotKeyManager.Register(modifiers, Keys.A);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"快捷键注册失败: {ex.Message}\n\n请检查是否有其他应用占用此快捷键",
+                    "注册失败",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+        }
+
+        /// <summary>
+        /// 重写 WndProc 处理快捷键消息
+        /// </summary>
+        protected override void WndProc(ref Message message)
+        {
+            if (_hotKeyManager != null && _hotKeyManager.IsHotKeyMessage(message))
+            {
+                ShowOrActivate();
+            }
+            base.WndProc(ref message);
+        }
+
+        /// <summary>
+        /// 显示或激活窗口
+        /// </summary>
+        private void ShowOrActivate()
+        {
+            if (WindowState == FormWindowState.Minimized)
+            {
+                WindowState = FormWindowState.Normal;
+            }
+            Activate();
+            BringToFront();
+        }
+
+        /// <summary>
+        /// 窗口关闭时清理资源
+        /// </summary>
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            _hotKeyManager?.Dispose();
+            base.OnFormClosing(e);
+        }
+
+        // 区域截图
+        private void button1_Click(object sender, EventArgs e)
+        {
+            // 隐藏窗体
+            this.Hide();
+
+            // 等待50毫秒
+            System.Threading.Thread.Sleep(50);
+
+            // 打开区域选择窗口
+            var regionForm = new RegionSelectorForm();
+            var result = regionForm.ShowDialog();
+
+            // 显示窗体
+            this.Show();
+
+            if (result == DialogResult.OK)
+            {
+                var image = regionForm.CapturedImage;
+                if (image != null)
+                {
+                    _screenshotHelper.SaveCapturedImage(image);
+                    MessageBox.Show("截图成功", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+        }
+
+        // 保存截图
+        private void button2_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Filter = "PNG 图像|*.png|JPEG 图像|*.jpg|所有文件|*.*";
+                sfd.FileName = $"Screenshot_{DateTime.Now:yyyyMMdd_HHmmss}";
+                sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    _screenshotHelper.SaveToFile(sfd.FileName);
+                }
+            }
+        }
+
+        // 复制到剪贴板
+        private void button3_Click(object sender, EventArgs e)
+        {
+            _screenshotHelper.CopyToClipboard();
+        }
+
+        /// <summary>
+        /// 按钮悬停 - 颜色变亮
+        /// </summary>
+        private void Button_MouseEnter(object sender, EventArgs e)
+        {
+            if (sender is Button btn)
+            {
+                btn.BackColor = ControlPaint.Light(btn.BackColor, 0.2f);
+            }
+        }
+
+        /// <summary>
+        /// 按钮离开 - 恢复颜色
+        /// </summary>
+        private void Button_MouseLeave(object sender, EventArgs e)
+        {
+            if (sender is Button btn)
+            {
+                // 恢复原色
+                if (btn.Name == "button1")
+                    btn.BackColor = Color.FromArgb(0, 120, 212);
+                else if (btn.Name == "button2")
+                    btn.BackColor = Color.FromArgb(107, 105, 214);
+                else if (btn.Name == "button3")
+                    btn.BackColor = Color.FromArgb(59, 185, 72);
+            }
+        }
+    }
+}

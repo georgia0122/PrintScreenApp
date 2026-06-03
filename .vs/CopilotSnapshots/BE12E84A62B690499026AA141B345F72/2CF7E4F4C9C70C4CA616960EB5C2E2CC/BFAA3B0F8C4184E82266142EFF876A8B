@@ -1,0 +1,97 @@
+﻿using System;
+using System.Drawing;
+using System.IO;
+using System.Windows.Forms;
+
+namespace PrintScreenApp
+{
+    /// <summary>
+    /// 截图辅助类，提供区域截图、保存和剪贴板复制功能
+    /// </summary>
+    public class ScreenshotHelper
+    {
+        private Bitmap _capturedImage;
+
+        /// <summary>
+        /// 执行区域截图操作
+        /// </summary>
+        /// <returns>返回截图的Bitmap对象</returns>
+        public Bitmap CaptureRegion()
+        {
+            var regionSelector = new RegionSelectorForm();
+            if (regionSelector.ShowDialog() == DialogResult.OK)
+            {
+                _capturedImage = regionSelector.CapturedImage;
+                return _capturedImage;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 将截图保存到文件
+        /// </summary>
+        /// <param name="filePath">保存的文件路径</param>
+        /// <returns>是否保存成功</returns>
+        public bool SaveToFile(string filePath)
+        {
+            if (_capturedImage == null)
+            {
+                MessageBox.Show("没有截图可保存", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            try
+            {
+                // 确保目录存在
+                string directory = Path.GetDirectoryName(filePath);
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                _capturedImage.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
+                MessageBox.Show($"截图已保存到：\n{filePath}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"保存失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 将截图复制到剪贴板
+        /// </summary>
+        /// <returns>是否复制成功</returns>
+        public bool CopyToClipboard()
+        {
+            if (_capturedImage == null)
+            {
+                MessageBox.Show("没有截图可复制", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            try
+            {
+                Clipboard.SetImage(_capturedImage);
+                MessageBox.Show("截图已复制到剪贴板", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"复制失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 获取当前截图
+        /// </summary>
+        /// <returns>当前的截图Bitmap对象</returns>
+        public Bitmap GetCapturedImage()
+        {
+            return _capturedImage;
+        }
+    }
+}

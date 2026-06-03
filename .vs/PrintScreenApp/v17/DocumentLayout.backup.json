@@ -1,0 +1,163 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{4A811A13-1B12-4205-8155-F29D9130120D}|PrintScreenApp\\PrintScreenApp.csproj|c:\\users\\yoyo\\source\\repos\\printscreenapp\\printscreenapp\\printscreenapp.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{4A811A13-1B12-4205-8155-F29D9130120D}|PrintScreenApp\\PrintScreenApp.csproj|solutionrelative:printscreenapp\\printscreenapp.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4A811A13-1B12-4205-8155-F29D9130120D}|PrintScreenApp\\PrintScreenApp.csproj|c:\\users\\yoyo\\source\\repos\\printscreenapp\\printscreenapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4A811A13-1B12-4205-8155-F29D9130120D}|PrintScreenApp\\PrintScreenApp.csproj|solutionrelative:printscreenapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4A811A13-1B12-4205-8155-F29D9130120D}|PrintScreenApp\\PrintScreenApp.csproj|c:\\users\\yoyo\\source\\repos\\printscreenapp\\printscreenapp\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4A811A13-1B12-4205-8155-F29D9130120D}|PrintScreenApp\\PrintScreenApp.csproj|solutionrelative:printscreenapp\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yoyo\\AppData\\Local\\Temp\\CopilotBaseline\\Deleted\\540171009\\Form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4A811A13-1B12-4205-8155-F29D9130120D}|PrintScreenApp\\PrintScreenApp.csproj|c:\\users\\yoyo\\source\\repos\\printscreenapp\\printscreenapp\\screenshothelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4A811A13-1B12-4205-8155-F29D9130120D}|PrintScreenApp\\PrintScreenApp.csproj|solutionrelative:printscreenapp\\screenshothelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4A811A13-1B12-4205-8155-F29D9130120D}|PrintScreenApp\\PrintScreenApp.csproj|c:\\users\\yoyo\\source\\repos\\printscreenapp\\printscreenapp\\regionselectorform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4A811A13-1B12-4205-8155-F29D9130120D}|PrintScreenApp\\PrintScreenApp.csproj|solutionrelative:printscreenapp\\regionselectorform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yoyo\\AppData\\Local\\Temp\\CopilotBaseline\\Deleted\\540171009\\RegionSelectorForm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yoyo\\Desktop\\Form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4A811A13-1B12-4205-8155-F29D9130120D}|PrintScreenApp\\PrintScreenApp.csproj|c:\\users\\yoyo\\source\\repos\\printscreenapp\\printscreenapp\\form1.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4A811A13-1B12-4205-8155-F29D9130120D}|PrintScreenApp\\PrintScreenApp.csproj|solutionrelative:printscreenapp\\form1.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 5,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Form1.Designer.cs",
+              "DocumentMoniker": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\Form1.Designer.cs",
+              "RelativeDocumentMoniker": "PrintScreenApp\\Form1.Designer.cs",
+              "ToolTip": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\Form1.Designer.cs",
+              "RelativeToolTip": "PrintScreenApp\\Form1.Designer.cs",
+              "ViewState": "AgIAABIAAAAAAAAAAABewAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-25T12:41:18.677Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Form1.cs",
+              "DocumentMoniker": "C:\\Users\\yoyo\\Desktop\\Form1.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\Desktop\\Form1.cs",
+              "ToolTip": "C:\\Users\\yoyo\\Desktop\\Form1.cs",
+              "RelativeToolTip": "..\\..\\..\\Desktop\\Form1.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-25T12:40:57.156Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Form1.cs",
+              "DocumentMoniker": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\Form1.cs",
+              "RelativeDocumentMoniker": "PrintScreenApp\\Form1.cs",
+              "ToolTip": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\Form1.cs",
+              "RelativeToolTip": "PrintScreenApp\\Form1.cs",
+              "ViewState": "AgIAAF8AAAAAAAAAAAAawJsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-25T10:41:02.906Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Form1.cs",
+              "DocumentMoniker": "C:\\Users\\yoyo\\AppData\\Local\\Temp\\CopilotBaseline\\Deleted\\540171009\\Form1.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\AppData\\Local\\Temp\\CopilotBaseline\\Deleted\\540171009\\Form1.cs",
+              "ToolTip": "C:\\Users\\yoyo\\AppData\\Local\\Temp\\CopilotBaseline\\Deleted\\540171009\\Form1.cs",
+              "RelativeToolTip": "..\\..\\..\\AppData\\Local\\Temp\\CopilotBaseline\\Deleted\\540171009\\Form1.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-25T10:40:52.801Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\Program.cs",
+              "RelativeDocumentMoniker": "PrintScreenApp\\Program.cs",
+              "ToolTip": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\Program.cs",
+              "RelativeToolTip": "PrintScreenApp\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-25T10:40:26.472Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "PrintScreenApp.csproj",
+              "DocumentMoniker": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\PrintScreenApp.csproj",
+              "RelativeDocumentMoniker": "PrintScreenApp\\PrintScreenApp.csproj",
+              "ToolTip": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\PrintScreenApp.csproj",
+              "RelativeToolTip": "PrintScreenApp\\PrintScreenApp.csproj",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-05-25T12:38:29.403Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "RegionSelectorForm.cs",
+              "DocumentMoniker": "C:\\Users\\yoyo\\AppData\\Local\\Temp\\CopilotBaseline\\Deleted\\540171009\\RegionSelectorForm.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\AppData\\Local\\Temp\\CopilotBaseline\\Deleted\\540171009\\RegionSelectorForm.cs",
+              "ToolTip": "C:\\Users\\yoyo\\AppData\\Local\\Temp\\CopilotBaseline\\Deleted\\540171009\\RegionSelectorForm.cs",
+              "RelativeToolTip": "..\\..\\..\\AppData\\Local\\Temp\\CopilotBaseline\\Deleted\\540171009\\RegionSelectorForm.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-25T09:23:12.788Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "RegionSelectorForm.cs",
+              "DocumentMoniker": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\RegionSelectorForm.cs",
+              "RelativeDocumentMoniker": "PrintScreenApp\\RegionSelectorForm.cs",
+              "ToolTip": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\RegionSelectorForm.cs",
+              "RelativeToolTip": "PrintScreenApp\\RegionSelectorForm.cs",
+              "ViewState": "AgIAABIAAAAAAAAAAEBCwCYBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-25T08:58:41.435Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ScreenshotHelper.cs",
+              "DocumentMoniker": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\ScreenshotHelper.cs",
+              "RelativeDocumentMoniker": "PrintScreenApp\\ScreenshotHelper.cs",
+              "ToolTip": "C:\\Users\\yoyo\\source\\repos\\PrintScreenApp\\PrintScreenApp\\ScreenshotHelper.cs",
+              "RelativeToolTip": "PrintScreenApp\\ScreenshotHelper.cs",
+              "ViewState": "AgIAADMAAAAAAAAAAAAawGoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-25T08:58:27.458Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
