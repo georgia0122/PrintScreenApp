@@ -304,10 +304,14 @@ namespace PrintScreenApp
                 using var editor = new AnnotationEditorForm(image, regionForm.SelectionScreenBounds);
                 DialogResult editorResult = editor.ShowDialog(this);
 
-                Bitmap finalImage = (editorResult == DialogResult.OK && editor.EditedImage != null)
-                    ? editor.EditedImage
-                    : image;
+                // 用户在批注界面取消（按 Esc / 点取消）→ 整次截图作废，什么都不保存
+                if (editorResult != DialogResult.OK || editor.EditedImage == null)
+                {
+                    Log("Annotation cancelled, screenshot discarded.");
+                    return;
+                }
 
+                Bitmap finalImage = editor.EditedImage;
                 _screenshotHelper.SaveCapturedImage(finalImage);
 
                 // 自动复制到剪贴板 + 自动保存到本地，省得用户回主窗口点按钮

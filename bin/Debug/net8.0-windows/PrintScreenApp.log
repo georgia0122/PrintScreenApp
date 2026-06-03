@@ -46,3 +46,8 @@
 2026-06-03 10:06:23.579 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x3FF04EA)
 2026-06-03 10:06:23.579 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x3FF04EA)
 2026-06-03 10:06:23.583 Keyboard hook installed: True
+2026-06-03 10:07:34.255 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x360E2A)
+2026-06-03 10:07:34.271 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x360E2A)
+2026-06-03 10:07:34.272 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x360E2A)
+2026-06-03 10:07:34.272 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x360E2A)
+2026-06-03 10:07:34.275 Keyboard hook installed: True
