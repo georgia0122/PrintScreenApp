@@ -26,3 +26,23 @@
 2026-06-03 10:03:49.160 Region selector closed: OK.
 2026-06-03 10:04:07.716 Screenshot copied to clipboard.
 2026-06-03 10:04:07.721 Screenshot auto-saved to C:\Users\farde\Pictures\PrintScreenApp\Screenshot_20260603_100407.png.
+2026-06-03 10:04:32.795 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x360DFE)
+2026-06-03 10:04:32.810 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x360DFE)
+2026-06-03 10:04:32.810 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x360DFE)
+2026-06-03 10:04:32.811 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x360DFE)
+2026-06-03 10:04:32.814 Keyboard hook installed: True
+2026-06-03 10:04:58.345 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x1C075C)
+2026-06-03 10:04:58.361 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x1C075C)
+2026-06-03 10:04:58.361 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x1C075C)
+2026-06-03 10:04:58.362 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x1C075C)
+2026-06-03 10:04:58.366 Keyboard hook installed: True
+2026-06-03 10:05:46.236 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x400CAC)
+2026-06-03 10:05:46.252 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x400CAC)
+2026-06-03 10:05:46.252 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x400CAC)
+2026-06-03 10:05:46.253 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x400CAC)
+2026-06-03 10:05:46.257 Keyboard hook installed: True
+2026-06-03 10:06:23.559 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x3FF04EA)
+2026-06-03 10:06:23.578 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x3FF04EA)
+2026-06-03 10:06:23.579 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x3FF04EA)
+2026-06-03 10:06:23.579 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x3FF04EA)
+2026-06-03 10:06:23.583 Keyboard hook installed: True

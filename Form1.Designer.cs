@@ -61,6 +61,16 @@
             labelHotkey.TabIndex = 11;
             labelHotkey.Text = "快捷键：点此设置";
             labelHotkey.Click += LabelHotkey_Click;
+
+            // Tooltip：鼠标悬停显示「点击可以修改」
+            ToolTip hotkeyTip = new ToolTip
+            {
+                AutoPopDelay = 5000,
+                InitialDelay = 300,
+                ReshowDelay = 200,
+                ShowAlways = true
+            };
+            hotkeyTip.SetToolTip(labelHotkey, "点击可以修改快捷键");
             
             // 
             // flowLayoutPanel1
@@ -140,7 +150,7 @@
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(250, 251, 253);
-            ClientSize = new Size(320, 360);
+            ClientSize = new Size(360, 380);
             Controls.Add(flowLayoutPanel1);
             Controls.Add(labelHotkey);
             Controls.Add(labelTitle);

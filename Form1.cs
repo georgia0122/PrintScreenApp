@@ -160,12 +160,12 @@ namespace PrintScreenApp
             if (_registeredHotKeyIds.Count > 0)
             {
                 _registeredHotKeys = string.Join(" / ", registeredNames);
-                labelHotkey.Text = $"Hotkey: {_registeredHotKeys}";
+                labelHotkey.Text = $"快捷键：{_registeredHotKeys}（点此修改）";
                 InitializeKeyboardHook();
                 return;
             }
 
-            labelHotkey.Text = "Hotkey: unavailable";
+            labelHotkey.Text = "快捷键：未启用（点此设置）";
             MessageBox.Show(
                 "快捷键注册全部失败，请在托盘菜单「设置快捷键…」中换一组未被占用的组合。",
                 "快捷键错误",
@@ -399,6 +399,8 @@ namespace PrintScreenApp
                 ctl.BackColor = ControlPaint.Light(ctl.BackColor, 0.2f);
             }
         }
+
+        private void LabelHotkey_Click(object? sender, EventArgs e) => OpenHotKeySettings();
 
         private void Button_MouseLeave(object sender, EventArgs e)
         {

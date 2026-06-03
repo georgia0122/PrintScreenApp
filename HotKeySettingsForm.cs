@@ -163,41 +163,55 @@ namespace PrintScreenApp
 
         public HotKeyCaptureForm()
         {
-            Text = "按下要使用的组合键";
+            Text = "录制快捷键";
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterParent;
             MaximizeBox = false;
             MinimizeBox = false;
-            ClientSize = new Size(360, 140);
+            ClientSize = new Size(420, 200);
             KeyPreview = true;
             ShowInTaskbar = false;
+            BackColor = Color.White;
+
+            var hint = new Label
+            {
+                Text = "请直接在键盘上按下你想用的组合键\n（Ctrl/Alt/Shift/Win + 任意按键）",
+                Location = new Point(12, 12),
+                Size = new Size(396, 44),
+                Font = new Font("Segoe UI", 10F, FontStyle.Regular),
+                TextAlign = ContentAlignment.MiddleCenter,
+                ForeColor = Color.FromArgb(80, 80, 80)
+            };
 
             _label = new Label
             {
-                Text = "请按下你想要的组合键，例如 Ctrl + Alt + Z",
-                Location = new Point(12, 14),
-                Size = new Size(336, 60),
-                Font = new Font("Segoe UI", 11F, FontStyle.Regular),
-                TextAlign = ContentAlignment.MiddleCenter
+                Text = "等待按键…",
+                Location = new Point(12, 60),
+                Size = new Size(396, 70),
+                Font = new Font("Segoe UI", 18F, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleCenter,
+                ForeColor = Color.FromArgb(0, 120, 212),
+                BackColor = Color.FromArgb(245, 248, 252),
+                BorderStyle = BorderStyle.FixedSingle
             };
 
             _ok = new Button
             {
                 Text = "确定",
-                Location = new Point(170, 96),
-                Size = new Size(82, 30),
+                Location = new Point(228, 152),
+                Size = new Size(88, 34),
                 Enabled = false,
                 DialogResult = DialogResult.OK
             };
             _cancel = new Button
             {
                 Text = "取消",
-                Location = new Point(260, 96),
-                Size = new Size(82, 30),
+                Location = new Point(322, 152),
+                Size = new Size(88, 34),
                 DialogResult = DialogResult.Cancel
             };
 
-            Controls.AddRange([_label, _ok, _cancel]);
+            Controls.AddRange([hint, _label, _ok, _cancel]);
             AcceptButton = _ok;
             CancelButton = _cancel;
         }
@@ -225,7 +239,7 @@ namespace PrintScreenApp
             };
 
             Result = entry;
-            _label.Text = $"已捕获：{entry.DisplayName}\n（如要换其他键，直接再按一次）";
+            _label.Text = entry.DisplayName;
             _ok.Enabled = entry.IsValid;
             e.SuppressKeyPress = true;
             e.Handled = true;
