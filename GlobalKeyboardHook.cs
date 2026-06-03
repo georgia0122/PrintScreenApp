@@ -13,11 +13,19 @@ namespace PrintScreenApp
         private const int VkMenu = 0x12;
         private const int VkControl = 0x11;
         private const int VkShift = 0x10;
+        private const int VkLwin = 0x5B;
+        private const int VkRwin = 0x5C;
         private const int LlkhfAltdown = 0x20;
 
         private readonly LowLevelKeyboardProc _proc;
         private IntPtr _hookId;
         private bool _disposed;
+
+        /// <summary>
+        /// 传入一个谓词：给 (vk, ctrl, alt, shift, win) 返回是否是快捷键。
+        /// 默认 null 表示列表为空，不会出现任何触发。
+        /// </summary>
+        public Func<int, bool, bool, bool, bool, bool>? Matcher { get; set; }
 
         public event EventHandler<Keys>? KeyPressed;
 
@@ -25,7 +33,14 @@ namespace PrintScreenApp
         {
             _proc = HookCallback;
             _hookId = SetHook(_proc);
+            if (_hookId == IntPtr.Zero)
+            {
+                int err = Marshal.GetLastWin32Error();
+                Debug.WriteLine($"SetWindowsHookEx failed. Win32 error {err}");
+            }
         }
+
+        public bool IsInstalled => _hookId != IntPtr.Zero;
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
@@ -60,11 +75,11 @@ namespace PrintScreenApp
                 int vkCode = keyInfo.VirtualKeyCode;
                 bool altDown = (keyInfo.Flags & LlkhfAltdown) != 0 || IsKeyDown(VkMenu);
                 bool ctrlDown = IsKeyDown(VkControl);
+                bool winDown = IsKeyDown(VkLwin) || IsKeyDown(VkRwin);
                 bool shiftDown = IsKeyDown(VkShift);
 
-                bool isConfiguredCombo = ctrlDown && altDown && (vkCode == (int)Keys.Z || vkCode == (int)Keys.B);
-
-                if (isConfiguredCombo)
+                bool matched = Matcher?.Invoke(vkCode, ctrlDown, altDown, shiftDown, winDown) ?? false;
+                if (matched)
                 {
                     KeyPressed?.Invoke(this, (Keys)vkCode);
                     return (IntPtr)1;

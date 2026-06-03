@@ -58,7 +58,7 @@
             labelHotkey.Name = "labelHotkey";
             labelHotkey.Size = new Size(220, 19);
             labelHotkey.TabIndex = 11;
-            labelHotkey.Text = "Hotkey: Ctrl + Alt + Z";
+            labelHotkey.Text = "Hotkey: Ctrl+Alt+Z 或 Ctrl+Win+Z";
             
             // 
             // flowLayoutPanel1

@@ -18,11 +18,7 @@ namespace PrintScreenApp
         private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
         private readonly ScreenshotHelper _screenshotHelper;
-        private readonly HotKeyDefinition[] _hotKeyCandidates =
-        [
-            new("Ctrl + Alt + Z", HotKeyManager.KeyModifiers.Ctrl | HotKeyManager.KeyModifiers.Alt, Keys.Z),
-            new("Ctrl + Alt + B", HotKeyManager.KeyModifiers.Ctrl | HotKeyManager.KeyModifiers.Alt, Keys.B)
-        ];
+        private HotKeyConfig _hotKeyConfig = HotKeyConfig.Load();
 
         private readonly List<int> _registeredHotKeyIds = [];
         private GlobalKeyboardHook? _keyboardHook;
@@ -40,6 +36,8 @@ namespace PrintScreenApp
             contextMenu.Items.Add("显示", null, (_, _) => ShowWindow());
             contextMenu.Items.Add("隐藏", null, (_, _) => HideWindow());
             contextMenu.Items.Add("立即截图", null, (_, _) => BeginInvoke(new Action(StartRegionScreenshot)));
+            contextMenu.Items.Add("-");
+            contextMenu.Items.Add("设置快捷键…", null, (_, _) => OpenHotKeySettings());
             contextMenu.Items.Add("-");
             contextMenu.Items.Add("退出", null, (_, _) => ExitApplication());
             ContextMenuStrip = contextMenu;
@@ -114,10 +112,11 @@ namespace PrintScreenApp
             else if (m.Msg == WM_HOTKEY)
             {
                 int id = m.WParam.ToInt32();
+                Log($"WM_HOTKEY received: id={id}, lParam=0x{m.LParam.ToInt64():X}");
                 int idx = _registeredHotKeyIds.IndexOf(id);
-                if (idx >= 0 && idx < _hotKeyCandidates.Length)
+                if (idx >= 0 && idx < _hotKeyConfig.Entries.Count)
                 {
-                    Log($"Hotkey triggered: {_hotKeyCandidates[idx].DisplayName}");
+                    Log($"Hotkey triggered: {_hotKeyConfig.Entries[idx].DisplayName}");
                     BeginInvoke(new Action(StartRegionScreenshot));
                     return;
                 }
@@ -127,31 +126,34 @@ namespace PrintScreenApp
 
         private void InitializeHotKey()
         {
-            if (_registeredHotKeyIds.Count > 0)
-            {
-                return;
-            }
+            DisposeHotKeys();
 
             List<string> registeredNames = [];
             const uint MOD_NOREPEAT = 0x4000;
 
-            for (int i = 0; i < _hotKeyCandidates.Length; i++)
+            for (int i = 0; i < _hotKeyConfig.Entries.Count; i++)
             {
-                HotKeyDefinition candidate = _hotKeyCandidates[i];
-                int id = 0xB000 + i; // 自定义 ID
-                uint mod = (uint)candidate.Modifiers | MOD_NOREPEAT;
-                uint vk = (uint)candidate.Key;
+                HotKeyEntry entry = _hotKeyConfig.Entries[i];
+                if (!entry.IsValid)
+                {
+                    Log($"Hotkey skipped: invalid entry at index {i}");
+                    continue;
+                }
+
+                int id = 0xB000 + i;
+                uint mod = (uint)entry.GetModifiers() | MOD_NOREPEAT;
+                uint vk = (uint)entry.Key;
 
                 if (RegisterHotKey(Handle, id, mod, vk))
                 {
                     _registeredHotKeyIds.Add(id);
-                    registeredNames.Add(candidate.DisplayName);
-                    Log($"Hotkey registered: {candidate.DisplayName} (id={id})");
+                    registeredNames.Add(entry.DisplayName);
+                    Log($"Hotkey registered: {entry.DisplayName} (id={id}, hWnd=0x{Handle.ToInt64():X})");
                 }
                 else
                 {
                     int err = Marshal.GetLastWin32Error();
-                    Log($"Hotkey failed: {candidate.DisplayName}. Win32 error {err}");
+                    Log($"Hotkey failed: {entry.DisplayName}. Win32 error {err}");
                 }
             }
 
@@ -165,7 +167,7 @@ namespace PrintScreenApp
 
             labelHotkey.Text = "Hotkey: unavailable";
             MessageBox.Show(
-                "快捷键注册失败：Ctrl + Alt + Z、Ctrl + Alt + B 都不可用，请关闭占用这些快捷键的应用后重试。",
+                "快捷键注册全部失败，请在托盘菜单「设置快捷键…」中换一组未被占用的组合。",
                 "快捷键错误",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Warning);
@@ -180,20 +182,66 @@ namespace PrintScreenApp
             _registeredHotKeyIds.Clear();
         }
 
+        private void OpenHotKeySettings()
+        {
+            using var dlg = new HotKeySettingsForm(_hotKeyConfig);
+            if (dlg.ShowDialog(this) == DialogResult.OK)
+            {
+                _hotKeyConfig = dlg.Config;
+                try
+                {
+                    _hotKeyConfig.Save();
+                    Log($"Hotkey config saved to {HotKeyConfig.ConfigPath}");
+                }
+                catch (Exception ex)
+                {
+                    Log($"Hotkey config save failed: {ex.Message}");
+                    MessageBox.Show($"保存配置失败：{ex.Message}", "错误",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                InitializeHotKey();
+            }
+        }
+
         private void InitializeKeyboardHook()
         {
             if (_keyboardHook != null)
             {
+                _keyboardHook.Matcher = HookMatch;
                 return;
             }
 
-            _keyboardHook = new GlobalKeyboardHook();
+            _keyboardHook = new GlobalKeyboardHook { Matcher = HookMatch };
+            Log($"Keyboard hook installed: {_keyboardHook.IsInstalled}");
             _keyboardHook.KeyPressed += (_, key) =>
             {
-                Log($"Keyboard hook triggered: Alt + Shift + {key}");
+                Log($"Keyboard hook triggered: {key}");
                 BeginInvoke(new Action(StartRegionScreenshot));
             };
-            Log("Keyboard hook initialized.");
+        }
+
+        /// <summary>
+        /// 按配置匹配；任一条 entry 命中（修饰键全相等）就返回 true。
+        /// 同时为了兼容用户在某些键盘上把 Alt 按成 Win（或反之），如果 entry 同时只用 Ctrl+(Alt|Win)+key，则 Alt/Win 二选一即可。
+        /// </summary>
+        private bool HookMatch(int vk, bool ctrl, bool alt, bool shift, bool win)
+        {
+            foreach (HotKeyEntry e in _hotKeyConfig.Entries)
+            {
+                if (!e.IsValid || (int)e.Key != vk) continue;
+                if (e.Ctrl != ctrl) continue;
+                if (e.Shift != shift) continue;
+
+                bool altOk = e.Alt == alt;
+                bool winOk = e.Win == win;
+                bool altWinSwap = e.Alt && !e.Win && win && !alt
+                                  || e.Win && !e.Alt && alt && !win;
+                if ((altOk && winOk) || altWinSwap)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private void ShowWindow()
@@ -372,6 +420,15 @@ namespace PrintScreenApp
         }
 
         private sealed record HotKeyDefinition(string DisplayName, HotKeyManager.KeyModifiers Modifiers, Keys Key);
+
+        private bool MatchesAnyConfiguredKey(Keys vk)
+        {
+            foreach (HotKeyEntry e in _hotKeyConfig.Entries)
+            {
+                if (e.Key == vk) return true;
+            }
+            return false;
+        }
 
         private static void Log(string message)
         {
