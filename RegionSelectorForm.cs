@@ -50,16 +50,20 @@ namespace PrintScreenApp
             this.StartPosition = FormStartPosition.Manual;
             this.Bounds = screen.Bounds;
             this.BackColor = Color.Black;
-            this.Opacity = 0;
+            this.Opacity = 1;
             this.TopMost = true;
             this.Cursor = Cursors.Cross;
             this.DoubleBuffered = true;
+            this.KeyPreview = true;
         }
 
         protected override void OnShown(EventArgs e)
         {
             base.OnShown(e);
-            this.Opacity = 0.3;
+            this.TopMost = true;
+            this.BringToFront();
+            this.Activate();
+            this.Focus();
         }
 
         /// <summary>
@@ -155,18 +159,23 @@ namespace PrintScreenApp
         {
             base.OnPaint(e);
 
-            if (!_selectionRectangle.IsEmpty && _fullScreenshot != null)
+            if (_fullScreenshot != null)
             {
                 try
                 {
+                    e.Graphics.DrawImage(_fullScreenshot, this.ClientRectangle);
+
                     // Draw mask layer (semi-transparent black)
                     DrawMaskLayer(e);
 
-                    // Draw original screenshot in selected area (fully opaque)
-                    DrawHighlightedRegion(e);
+                    if (!_selectionRectangle.IsEmpty)
+                    {
+                        // Draw original screenshot in selected area (fully opaque)
+                        DrawHighlightedRegion(e);
 
-                    // Draw selection border
-                    DrawSelectionBorder(e);
+                        // Draw selection border
+                        DrawSelectionBorder(e);
+                    }
                 }
                 catch (Exception ex)
                 {

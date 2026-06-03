@@ -318,21 +318,33 @@ namespace PrintScreenApp
         /// </summary>
         public void UpdatePosition(Rectangle selectionRect)
         {
-            const int gapBelow = 5;
+            const int gap = 8;
 
             Screen screen = Screen.FromRectangle(selectionRect);
             Rectangle work = screen.WorkingArea;
 
-            Left = selectionRect.Left + (selectionRect.Width - Width) / 2;
-            Top = selectionRect.Bottom + gapBelow;
+            int desiredLeft = selectionRect.Left + (selectionRect.Width - Width) / 2;
+            int belowTop = selectionRect.Bottom + gap;
+            int aboveTop = selectionRect.Top - Height - gap;
+            int desiredTop = belowTop + Height <= work.Bottom ? belowTop : aboveTop;
 
-            if (Top + Height > work.Bottom)
+            if (desiredTop < work.Top)
             {
-                Top = selectionRect.Bottom - Height - gapBelow;
+                desiredTop = work.Bottom - Height;
             }
 
-            Left = Math.Max(work.Left, Math.Min(Left, work.Right - Width));
-            Top = Math.Max(work.Top, Math.Min(Top, work.Bottom - Height));
+            Left = Clamp(desiredLeft, work.Left, work.Right - Width);
+            Top = Clamp(desiredTop, work.Top, work.Bottom - Height);
+        }
+
+        private static int Clamp(int value, int min, int max)
+        {
+            if (max < min)
+            {
+                return min;
+            }
+
+            return Math.Max(min, Math.Min(value, max));
         }
     }
 }
