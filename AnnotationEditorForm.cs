@@ -19,6 +19,7 @@ namespace PrintScreenApp
         private DrawingManager _drawingManager = null!;
         private IAnnotationTool _currentTool = null!;
         private ToolbarForm _toolbar = null!;
+        private System.Windows.Forms.Timer _toolbarKeeper = null!;
         private PictureBox _canvasBox = null!;
         private Color _currentColor = Color.Red;
         private int _currentSize = 2;
@@ -113,13 +114,18 @@ namespace PrintScreenApp
                 DialogResult = DialogResult.Cancel;
                 Close();
             };
+
+            _toolbarKeeper = new System.Windows.Forms.Timer { Interval = 250 };
+            _toolbarKeeper.Tick += (_, _) => KeepToolbarVisible();
         }
 
         protected override void OnShown(EventArgs e)
         {
             base.OnShown(e);
             _toolbar.UpdatePosition(_screenBounds);
-            _toolbar.Show();
+            _toolbar.Show(this);
+            _toolbarKeeper.Start();
+            KeepToolbarVisible();
         }
 
         private IAnnotationTool GetTool(AnnotationToolKind kind) => kind switch
@@ -147,6 +153,7 @@ namespace PrintScreenApp
             _currentTool = tool;
             _toolbar.SetActiveTool(GetToolKind(tool));
             _drawingManager.SaveState();
+            KeepToolbarVisible();
         }
 
         private void PickColor()
@@ -157,6 +164,8 @@ namespace PrintScreenApp
                 _currentColor = colorDialog.Color;
                 UpdateToolColor();
             }
+
+            KeepToolbarVisible();
         }
 
         private void UpdateToolColor()
@@ -183,6 +192,8 @@ namespace PrintScreenApp
                 _canvasBox.Image = _editingImage;
                 _canvasBox.Invalidate();
             }
+
+            KeepToolbarVisible();
         }
 
         private void Redo()
@@ -193,6 +204,8 @@ namespace PrintScreenApp
                 _canvasBox.Image = _editingImage;
                 _canvasBox.Invalidate();
             }
+
+            KeepToolbarVisible();
         }
 
         private void CanvasBox_MouseDown(object? sender, MouseEventArgs e)
@@ -200,6 +213,7 @@ namespace PrintScreenApp
             using Graphics g = Graphics.FromImage(_editingImage);
             _currentTool.OnMouseDown(e, g, _editingImage);
             _canvasBox.Invalidate();
+            KeepToolbarVisible();
         }
 
         private void CanvasBox_MouseMove(object? sender, MouseEventArgs e)
@@ -214,11 +228,34 @@ namespace PrintScreenApp
             using Graphics g = Graphics.FromImage(_editingImage);
             _currentTool.OnMouseUp(e, g, _editingImage);
             _canvasBox.Invalidate();
+            KeepToolbarVisible();
         }
 
         private void CanvasBox_Paint(object? sender, PaintEventArgs e)
         {
             _currentTool.DrawPreview(e.Graphics);
+        }
+
+        protected override void OnActivated(EventArgs e)
+        {
+            base.OnActivated(e);
+            KeepToolbarVisible();
+        }
+
+        private void KeepToolbarVisible()
+        {
+            if (_toolbar == null || _toolbar.IsDisposed)
+            {
+                return;
+            }
+
+            if (!_toolbar.Visible)
+            {
+                _toolbar.Show(this);
+            }
+
+            _toolbar.TopMost = true;
+            _toolbar.BringToFront();
         }
 
         protected override void OnKeyDown(KeyEventArgs e)
@@ -243,6 +280,8 @@ namespace PrintScreenApp
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
+            _toolbarKeeper?.Stop();
+            _toolbarKeeper?.Dispose();
             _toolbar?.Close();
             _toolbar?.Dispose();
             _drawingManager?.Dispose();

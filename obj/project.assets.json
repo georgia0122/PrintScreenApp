@@ -1,35 +1,44 @@
 {
-  "version": 3,
+  "version": 4,
   "targets": {
-    "net8.0-windows7.0": {}
+    "net8.0-windows": {}
   },
   "libraries": {},
   "projectFileDependencyGroups": {
-    "net8.0-windows7.0": []
+    "net8.0-windows": []
   },
   "packageFolders": {
-    "C:\\Users\\farde\\.nuget\\packages\\": {}
+    "C:\\Users\\yoyo\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\farde\\Desktop\\PrintScreenApp\\PrintScreenApp.csproj",
+      "projectUniqueName": "C:\\Users\\yoyo\\Desktop\\PrintScreenApp-main\\PrintScreenApp.csproj",
       "projectName": "PrintScreenApp",
-      "projectPath": "C:\\Users\\farde\\Desktop\\PrintScreenApp\\PrintScreenApp.csproj",
-      "packagesPath": "C:\\Users\\farde\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\farde\\Desktop\\PrintScreenApp\\obj\\",
+      "projectPath": "C:\\Users\\yoyo\\Desktop\\PrintScreenApp-main\\PrintScreenApp.csproj",
+      "packagesPath": "C:\\Users\\yoyo\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\yoyo\\Desktop\\PrintScreenApp-main\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\farde\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\yoyo\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net8.0-windows"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
-        "net8.0-windows7.0": {
+        "net8.0-windows": {
+          "framework": "net8.0-windows7.0",
           "targetAlias": "net8.0-windows",
           "projectReferences": {}
         }
@@ -43,10 +52,12 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      }
+      },
+      "SdkAnalysisLevel": "10.0.300"
     },
     "frameworks": {
-      "net8.0-windows7.0": {
+      "net8.0-windows": {
+        "framework": "net8.0-windows7.0",
         "targetAlias": "net8.0-windows",
         "imports": [
           "net461",
@@ -67,7 +78,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.421/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

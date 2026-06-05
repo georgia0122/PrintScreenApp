@@ -66,3 +66,37 @@
 2026-06-03 10:08:53.112 Region selector closed: OK.
 2026-06-03 10:08:55.318 Screenshot copied to clipboard.
 2026-06-03 10:08:55.327 Screenshot auto-saved to C:\Users\farde\Pictures\PrintScreenApp\Screenshot_20260603_100855.png.
+2026-06-05 13:24:59.101 Keyboard hook triggered: Z
+2026-06-05 13:24:59.104 Starting region screenshot.
+2026-06-05 13:25:04.113 Region selector closed: OK.
+2026-06-05 13:25:54.270 Annotation cancelled, screenshot discarded.
+2026-06-05 13:28:28.659 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x130FF4)
+2026-06-05 13:28:28.672 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x130FF4)
+2026-06-05 13:28:28.673 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x130FF4)
+2026-06-05 13:28:28.673 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x130FF4)
+2026-06-05 13:28:28.680 Keyboard hook installed: True
+2026-06-05 13:32:40.009 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x5310C2)
+2026-06-05 13:32:40.022 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x5310C2)
+2026-06-05 13:32:40.023 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x5310C2)
+2026-06-05 13:32:40.023 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x5310C2)
+2026-06-05 13:32:40.027 Keyboard hook installed: True
+2026-06-05 13:32:50.860 Starting region screenshot.
+2026-06-05 13:33:02.424 Region selector closed: Cancel.
+2026-06-05 13:33:30.253 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x230570)
+2026-06-05 13:33:30.268 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x230570)
+2026-06-05 13:33:30.268 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x230570)
+2026-06-05 13:33:30.269 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x230570)
+2026-06-05 13:33:30.274 Keyboard hook installed: True
+2026-06-05 13:33:38.818 Keyboard hook triggered: Z
+2026-06-05 13:33:38.820 Starting region screenshot.
+2026-06-05 13:33:45.709 Region selector closed: OK.
+2026-06-05 13:34:06.473 Screenshot copied to clipboard.
+2026-06-05 13:34:06.492 Screenshot auto-saved to C:\Users\yoyo\Pictures\PrintScreenApp\Screenshot_20260605_133406.png.
+2026-06-05 13:39:34.981 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x1B0F10)
+2026-06-05 13:39:34.995 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x1B0F10)
+2026-06-05 13:39:34.995 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x1B0F10)
+2026-06-05 13:39:34.996 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x1B0F10)
+2026-06-05 13:39:35.000 Keyboard hook installed: True
+2026-06-05 13:39:37.043 Keyboard hook triggered: Z
+2026-06-05 13:39:37.045 Starting region screenshot.
+2026-06-05 13:39:44.514 Region selector closed: Cancel.
