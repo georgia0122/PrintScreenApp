@@ -123,7 +123,7 @@ namespace PrintScreenApp
         {
             base.OnShown(e);
             _toolbar.UpdatePosition(_screenBounds);
-            _toolbar.Show(this);
+            _toolbar.Show();
             _toolbarKeeper.Start();
             KeepToolbarVisible();
         }
@@ -221,6 +221,7 @@ namespace PrintScreenApp
             using Graphics g = Graphics.FromImage(_editingImage);
             _currentTool.OnMouseMove(e, g, _editingImage);
             _canvasBox.Invalidate();
+            KeepToolbarVisible();
         }
 
         private void CanvasBox_MouseUp(object? sender, MouseEventArgs e)
@@ -251,11 +252,11 @@ namespace PrintScreenApp
 
             if (!_toolbar.Visible)
             {
-                _toolbar.Show(this);
+                _toolbar.Show();
             }
 
-            _toolbar.TopMost = true;
-            _toolbar.BringToFront();
+            _toolbar.UpdatePosition(_screenBounds);
+            _toolbar.EnsureVisibleOnTop();
         }
 
         protected override void OnKeyDown(KeyEventArgs e)

@@ -100,3 +100,17 @@
 2026-06-05 13:39:37.043 Keyboard hook triggered: Z
 2026-06-05 13:39:37.045 Starting region screenshot.
 2026-06-05 13:39:44.514 Region selector closed: Cancel.
+2026-06-05 16:44:07.837 Keyboard hook triggered: Z
+2026-06-05 16:44:07.843 Starting region screenshot.
+2026-06-05 16:44:19.279 Region selector closed: OK.
+2026-06-05 16:45:53.178 Annotation cancelled, screenshot discarded.
+2026-06-05 16:59:22.479 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x700644)
+2026-06-05 16:59:22.492 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x700644)
+2026-06-05 16:59:22.492 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x700644)
+2026-06-05 16:59:22.493 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x700644)
+2026-06-05 16:59:22.498 Keyboard hook installed: True
+2026-06-05 16:59:25.477 Keyboard hook triggered: Z
+2026-06-05 16:59:25.482 Starting region screenshot.
+2026-06-05 16:59:29.167 Region selector closed: OK.
+2026-06-05 16:59:37.909 Screenshot copied to clipboard.
+2026-06-05 16:59:37.927 Screenshot auto-saved to C:\Users\yoyo\Pictures\PrintScreenApp\Screenshot_20260605_165937.png.

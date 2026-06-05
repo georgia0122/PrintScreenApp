@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace PrintScreenApp
@@ -49,6 +50,16 @@ namespace PrintScreenApp
         private const int DragHandleWidth = 16;
         private const int CornerRadius = 8;
         private const int EdgeMargin = 12;
+        private const int OutsideGap = 10;
+
+        private static readonly IntPtr HwndTopMost = new IntPtr(-1);
+        private const uint SwpNoSize = 0x0001;
+        private const uint SwpNoMove = 0x0002;
+        private const uint SwpNoActivate = 0x0010;
+        private const uint SwpShowWindow = 0x0040;
+        private const int WsExToolWindow = 0x00000080;
+        private const int WsExTopMost = 0x00000008;
+        private const int WsExNoActivate = 0x08000000;
 
         private readonly ToolTip _toolTip = new ToolTip();
         private AnnotationToolKind _activeTool = AnnotationToolKind.Pen;
@@ -56,6 +67,7 @@ namespace PrintScreenApp
         private Rectangle _lastScreenWorkArea = Rectangle.Empty;
         private Point _mouseOffset;
         private bool _isDragging;
+        private bool _userMoved;
 
         public event EventHandler<AnnotationToolKind>? ToolSelected;
         public event EventHandler? ColorPickRequested;
@@ -89,6 +101,16 @@ namespace PrintScreenApp
         }
 
         protected override bool ShowWithoutActivation => true;
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                cp.ExStyle |= WsExToolWindow | WsExTopMost | WsExNoActivate;
+                return cp;
+            }
+        }
 
         private void BuildToolbar()
         {
@@ -330,7 +352,9 @@ namespace PrintScreenApp
             {
                 _isDragging = false;
                 Capture = false;
+                _userMoved = true;
                 Location = ClampToWorkArea(Location);
+                EnsureVisibleOnTop();
             }
         }
 
@@ -339,20 +363,26 @@ namespace PrintScreenApp
             Screen screen = Screen.FromRectangle(selectionRect);
             _lastScreenWorkArea = screen.WorkingArea;
 
-            int desiredLeft = selectionRect.Left + (selectionRect.Width - Width) / 2;
-            int belowTop = selectionRect.Bottom + EdgeMargin;
-            int aboveTop = selectionRect.Top - Height - EdgeMargin;
-
-            int desiredTop = belowTop + Height <= _lastScreenWorkArea.Bottom - EdgeMargin
-                ? belowTop
-                : aboveTop;
-
-            if (desiredTop < _lastScreenWorkArea.Top + EdgeMargin)
+            if (_userMoved)
             {
-                desiredTop = _lastScreenWorkArea.Bottom - Height - EdgeMargin;
+                Location = ClampToWorkArea(Location);
+                EnsureVisibleOnTop();
+                return;
             }
 
-            Location = ClampToWorkArea(new Point(desiredLeft, desiredTop));
+            Location = GetOutsidePosition(selectionRect, _lastScreenWorkArea);
+            EnsureVisibleOnTop();
+        }
+
+        public void EnsureVisibleOnTop()
+        {
+            if (!Visible)
+            {
+                Show();
+            }
+
+            TopMost = true;
+            SetWindowPos(Handle, HwndTopMost, 0, 0, 0, 0, SwpNoMove | SwpNoSize | SwpNoActivate | SwpShowWindow);
         }
 
         protected override void OnResize(EventArgs e)
@@ -384,6 +414,36 @@ namespace PrintScreenApp
             return new Point(
                 Clamp(point.X, minLeft, maxLeft),
                 Clamp(point.Y, minTop, maxTop));
+        }
+
+        private Point GetOutsidePosition(Rectangle selectionRect, Rectangle work)
+        {
+            int centeredLeft = selectionRect.Left + (selectionRect.Width - Width) / 2;
+
+            if (selectionRect.Bottom + OutsideGap + Height <= work.Bottom - EdgeMargin)
+            {
+                return ClampToWorkArea(new Point(centeredLeft, selectionRect.Bottom + OutsideGap));
+            }
+
+            if (selectionRect.Top - OutsideGap - Height >= work.Top + EdgeMargin)
+            {
+                return ClampToWorkArea(new Point(centeredLeft, selectionRect.Top - Height - OutsideGap));
+            }
+
+            int centeredTop = selectionRect.Top + (selectionRect.Height - Height) / 2;
+            if (selectionRect.Right + OutsideGap + Width <= work.Right - EdgeMargin)
+            {
+                return ClampToWorkArea(new Point(selectionRect.Right + OutsideGap, centeredTop));
+            }
+
+            if (selectionRect.Left - OutsideGap - Width >= work.Left + EdgeMargin)
+            {
+                return ClampToWorkArea(new Point(selectionRect.Left - Width - OutsideGap, centeredTop));
+            }
+
+            int fallbackLeft = selectionRect.Left + (selectionRect.Width - Width) / 2;
+            int fallbackTop = work.Bottom - Height - EdgeMargin;
+            return ClampToWorkArea(new Point(fallbackLeft, fallbackTop));
         }
 
         private void ApplyRoundedRegion()
@@ -420,6 +480,16 @@ namespace PrintScreenApp
 
             return Math.Max(min, Math.Min(value, max));
         }
+
+        [DllImport("user32.dll")]
+        private static extern bool SetWindowPos(
+            IntPtr hWnd,
+            IntPtr hWndInsertAfter,
+            int x,
+            int y,
+            int cx,
+            int cy,
+            uint uFlags);
 
         private sealed class IconButton : Button
         {
