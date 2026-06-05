@@ -29,6 +29,8 @@ namespace PrintScreenApp
         private MosaicTool _mosaicTool = null!;
         private RectangleTool _rectangleTool = null!;
         private CircleTool _circleTool = null!;
+        private HighlighterTool _highlighterTool = null!;
+        private EraserTool _eraserTool = null!;
 
         public Bitmap EditedImage { get; private set; } = null!;
 
@@ -52,6 +54,8 @@ namespace PrintScreenApp
             _mosaicTool = new MosaicTool { ToolColor = _currentColor, ToolSize = 10 };
             _rectangleTool = new RectangleTool { ToolColor = _currentColor, ToolSize = _currentSize };
             _circleTool = new CircleTool { ToolColor = _currentColor, ToolSize = _currentSize };
+            _highlighterTool = new HighlighterTool { ToolSize = 14 };
+            _eraserTool = new EraserTool(_originalImage) { ToolSize = 20 };
             _currentTool = _penTool;
         }
 
@@ -135,6 +139,8 @@ namespace PrintScreenApp
             AnnotationToolKind.Mosaic => _mosaicTool,
             AnnotationToolKind.Rectangle => _rectangleTool,
             AnnotationToolKind.Circle => _circleTool,
+            AnnotationToolKind.Highlighter => _highlighterTool,
+            AnnotationToolKind.Eraser => _eraserTool,
             _ => _penTool
         };
 
@@ -145,6 +151,8 @@ namespace PrintScreenApp
             if (tool == _mosaicTool) return AnnotationToolKind.Mosaic;
             if (tool == _rectangleTool) return AnnotationToolKind.Rectangle;
             if (tool == _circleTool) return AnnotationToolKind.Circle;
+            if (tool == _highlighterTool) return AnnotationToolKind.Highlighter;
+            if (tool == _eraserTool) return AnnotationToolKind.Eraser;
             return AnnotationToolKind.Pen;
         }
 
@@ -152,7 +160,6 @@ namespace PrintScreenApp
         {
             _currentTool = tool;
             _toolbar.SetActiveTool(GetToolKind(tool));
-            _drawingManager.SaveState();
             KeepToolbarVisible();
         }
 
@@ -174,6 +181,7 @@ namespace PrintScreenApp
             _arrowTool.ToolColor = _currentColor;
             _rectangleTool.ToolColor = _currentColor;
             _circleTool.ToolColor = _currentColor;
+            _highlighterTool.ToolColor = _currentColor;
         }
 
         private void UpdateToolSize()
@@ -182,6 +190,8 @@ namespace PrintScreenApp
             _arrowTool.ToolSize = _currentSize;
             _rectangleTool.ToolSize = _currentSize;
             _circleTool.ToolSize = _currentSize;
+            _highlighterTool.ToolSize = Math.Max(8, _currentSize * 4);
+            _eraserTool.ToolSize = Math.Max(12, _currentSize * 5);
         }
 
         private void Undo()
@@ -210,6 +220,7 @@ namespace PrintScreenApp
 
         private void CanvasBox_MouseDown(object? sender, MouseEventArgs e)
         {
+            _drawingManager.SaveState(_editingImage);
             using Graphics g = Graphics.FromImage(_editingImage);
             _currentTool.OnMouseDown(e, g, _editingImage);
             _canvasBox.Invalidate();
@@ -228,6 +239,7 @@ namespace PrintScreenApp
         {
             using Graphics g = Graphics.FromImage(_editingImage);
             _currentTool.OnMouseUp(e, g, _editingImage);
+            _drawingManager.SetCurrentImage(_editingImage);
             _canvasBox.Invalidate();
             KeepToolbarVisible();
         }
@@ -270,6 +282,8 @@ namespace PrintScreenApp
                 case Keys.D3: SelectTool(_mosaicTool); break;
                 case Keys.D4: SelectTool(_rectangleTool); break;
                 case Keys.D5: SelectTool(_circleTool); break;
+                case Keys.D6: SelectTool(_highlighterTool); break;
+                case Keys.D7: SelectTool(_eraserTool); break;
                 case Keys.Z when e.Control: Undo(); break;
                 case Keys.Y when e.Control: Redo(); break;
                 case Keys.Escape:

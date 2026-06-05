@@ -54,4 +54,9 @@ namespace PrintScreenApp
         /// </summary>
         void Reset();
     }
+
+    public interface ISourceImageTool
+    {
+        Bitmap SourceImage { get; set; }
+    }
 }

@@ -12,7 +12,9 @@ namespace PrintScreenApp
         Arrow,
         Mosaic,
         Rectangle,
-        Circle
+        Circle,
+        Highlighter,
+        Eraser
     }
 
     internal enum ToolbarIcon
@@ -22,6 +24,8 @@ namespace PrintScreenApp
         Mosaic,
         Rectangle,
         Circle,
+        Highlighter,
+        Eraser,
         Color,
         Undo,
         Redo,
@@ -34,21 +38,22 @@ namespace PrintScreenApp
     /// </summary>
     public class ToolbarForm : Form
     {
-        private static readonly Color Background = Color.FromArgb(38, 38, 38);
-        private static readonly Color ButtonIdle = Color.FromArgb(45, 45, 45);
-        private static readonly Color ButtonHover = Color.FromArgb(60, 60, 60);
-        private static readonly Color ButtonActive = Color.FromArgb(0, 122, 204);
-        private static readonly Color Stroke = Color.FromArgb(238, 238, 238);
-        private static readonly Color Separator = Color.FromArgb(86, 86, 86);
-        private static readonly Color SaveAccent = Color.FromArgb(42, 151, 85);
-        private static readonly Color CancelAccent = Color.FromArgb(214, 70, 64);
-        private const int ToolbarHeight = 48;
-        private const int ButtonSize = 34;
-        private const int SidePadding = 10;
-        private const int Gap = 5;
-        private const int GroupGap = 10;
-        private const int DragHandleWidth = 16;
-        private const int CornerRadius = 8;
+        private static readonly Color Background = Color.FromArgb(252, 252, 252);
+        private static readonly Color ButtonIdle = Color.FromArgb(252, 252, 252);
+        private static readonly Color ButtonHover = Color.FromArgb(241, 243, 245);
+        private static readonly Color ButtonActive = Color.FromArgb(231, 245, 255);
+        private static readonly Color Stroke = Color.FromArgb(34, 36, 38);
+        private static readonly Color ActiveStroke = Color.FromArgb(0, 132, 255);
+        private static readonly Color Separator = Color.FromArgb(224, 226, 229);
+        private static readonly Color SaveAccent = Color.FromArgb(0, 190, 108);
+        private static readonly Color CancelAccent = Color.FromArgb(255, 76, 82);
+        private const int ToolbarHeight = 74;
+        private const int ButtonSize = 48;
+        private const int SidePadding = 18;
+        private const int Gap = 6;
+        private const int GroupGap = 14;
+        private const int DragHandleWidth = 12;
+        private const int CornerRadius = 10;
         private const int EdgeMargin = 12;
         private const int OutsideGap = 10;
 
@@ -123,11 +128,13 @@ namespace PrintScreenApp
             int x = DragHandleWidth + SidePadding;
             int y = (ToolbarHeight - ButtonSize) / 2;
 
-            _activeButton = AddToolButton(ref x, y, ToolbarIcon.Pen, AnnotationToolKind.Pen, "Pen");
-            AddToolButton(ref x, y, ToolbarIcon.Arrow, AnnotationToolKind.Arrow, "Arrow");
-            AddToolButton(ref x, y, ToolbarIcon.Mosaic, AnnotationToolKind.Mosaic, "Mosaic");
             AddToolButton(ref x, y, ToolbarIcon.Rectangle, AnnotationToolKind.Rectangle, "Rectangle");
             AddToolButton(ref x, y, ToolbarIcon.Circle, AnnotationToolKind.Circle, "Circle");
+            AddToolButton(ref x, y, ToolbarIcon.Arrow, AnnotationToolKind.Arrow, "Arrow");
+            _activeButton = AddToolButton(ref x, y, ToolbarIcon.Pen, AnnotationToolKind.Pen, "Pen");
+            AddToolButton(ref x, y, ToolbarIcon.Highlighter, AnnotationToolKind.Highlighter, "Highlighter");
+            AddToolButton(ref x, y, ToolbarIcon.Eraser, AnnotationToolKind.Eraser, "Eraser");
+            AddToolButton(ref x, y, ToolbarIcon.Mosaic, AnnotationToolKind.Mosaic, "Mosaic");
 
             AddSeparator(ref x, y);
 
@@ -140,7 +147,7 @@ namespace PrintScreenApp
             var sizeTracker = new TrackBar
             {
                 Location = new Point(x, y + 2),
-                Size = new Size(86, ButtonSize - 4),
+                Size = new Size(104, ButtonSize - 8),
                 Minimum = 1,
                 Maximum = 15,
                 Value = 2,
@@ -172,16 +179,14 @@ namespace PrintScreenApp
 
             var saveBtn = CreateIconButton(ToolbarIcon.Save, "Save");
             saveBtn.Location = new Point(x, y);
-            saveBtn.NormalBackColor = SaveAccent;
-            saveBtn.HoverBackColor = ControlPaint.Light(SaveAccent, 0.18f);
+            saveBtn.HoverBackColor = Color.FromArgb(235, 255, 246);
             saveBtn.Click += (_, _) => SaveRequested?.Invoke(this, EventArgs.Empty);
             Controls.Add(saveBtn);
             x += saveBtn.Width + Gap;
 
             var cancelBtn = CreateIconButton(ToolbarIcon.Cancel, "Cancel");
             cancelBtn.Location = new Point(x, y);
-            cancelBtn.NormalBackColor = CancelAccent;
-            cancelBtn.HoverBackColor = ControlPaint.Light(CancelAccent, 0.15f);
+            cancelBtn.HoverBackColor = Color.FromArgb(255, 239, 240);
             cancelBtn.Click += (_, _) => CancelRequested?.Invoke(this, EventArgs.Empty);
             Controls.Add(cancelBtn);
             x += cancelBtn.Width + SidePadding;
@@ -208,7 +213,7 @@ namespace PrintScreenApp
         private void DragHandle_Paint(object? sender, PaintEventArgs e)
         {
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            using var brush = new SolidBrush(Color.FromArgb(150, 150, 150));
+            using var brush = new SolidBrush(Color.FromArgb(150, 153, 158));
 
             const int dotSize = 3;
             const int dotGap = 5;
@@ -248,6 +253,7 @@ namespace PrintScreenApp
                 HoverBackColor = ButtonHover,
                 ActiveBackColor = ButtonActive,
                 IconColor = Stroke,
+                ActiveIconColor = ActiveStroke,
                 Cursor = Cursors.Hand,
                 TabStop = false
             };
@@ -262,8 +268,8 @@ namespace PrintScreenApp
             Controls.Add(new Panel
             {
                 BackColor = Separator,
-                Location = new Point(x, y + 6),
-                Size = new Size(1, ButtonSize - 12)
+                Location = new Point(x, y + 8),
+                Size = new Size(1, ButtonSize - 16)
             });
             x += GroupGap;
         }
@@ -512,6 +518,7 @@ namespace PrintScreenApp
             public Color HoverBackColor { get; set; } = ButtonHover;
             public Color ActiveBackColor { get; set; } = ButtonActive;
             public Color IconColor { get; set; } = Stroke;
+            public Color ActiveIconColor { get; set; } = ActiveStroke;
 
             public bool IsActive
             {
@@ -569,18 +576,18 @@ namespace PrintScreenApp
                     e.Graphics.FillPath(bg, path);
                 }
 
-                DrawIcon(e.Graphics, ClientRectangle, Icon, IconColor);
+                DrawIcon(e.Graphics, ClientRectangle, Icon, IsActive ? ActiveIconColor : IconColor);
             }
 
             private static void DrawIcon(Graphics g, Rectangle bounds, ToolbarIcon icon, Color color)
             {
-                using var pen = new Pen(color, 2.2f)
+                using var pen = new Pen(color, 2.6f)
                 {
                     StartCap = LineCap.Round,
                     EndCap = LineCap.Round,
                     LineJoin = LineJoin.Round
                 };
-                using var thickPen = new Pen(color, 3.4f)
+                using var thickPen = new Pen(color, 3.2f)
                 {
                     StartCap = LineCap.Round,
                     EndCap = LineCap.Round,
@@ -594,60 +601,110 @@ namespace PrintScreenApp
                 switch (icon)
                 {
                     case ToolbarIcon.Pen:
-                        g.DrawLine(thickPen, cx - 7, cy + 8, cx + 8, cy - 7);
-                        g.DrawLine(pen, cx + 5, cy - 10, cx + 10, cy - 5);
-                        g.FillEllipse(brush, cx - 9, cy + 7, 4, 4);
+                        g.DrawLine(thickPen, cx - 10, cy + 11, cx + 9, cy - 8);
+                        g.DrawLine(pen, cx + 6, cy - 12, cx + 13, cy - 5);
+                        g.FillEllipse(brush, cx - 12, cy + 10, 4, 4);
                         break;
                     case ToolbarIcon.Arrow:
-                        g.DrawLine(thickPen, cx - 8, cy + 7, cx + 8, cy - 7);
-                        g.DrawLine(thickPen, cx + 8, cy - 7, cx + 8, cy + 1);
-                        g.DrawLine(thickPen, cx + 8, cy - 7, cx, cy - 7);
+                        g.DrawLine(pen, cx - 11, cy + 10, cx + 11, cy - 12);
+                        g.DrawLine(pen, cx + 11, cy - 12, cx + 11, cy - 1);
+                        g.DrawLine(pen, cx + 11, cy - 12, cx, cy - 12);
+                        break;
+                    case ToolbarIcon.Highlighter:
+                        using (var marker = new Pen(Color.FromArgb(190, 255, 214, 64), 8f)
+                        {
+                            StartCap = LineCap.Round,
+                            EndCap = LineCap.Round
+                        })
+                        {
+                            g.DrawLine(marker, cx - 10, cy + 8, cx + 11, cy - 10);
+                        }
+                        g.DrawLine(pen, cx - 11, cy + 10, cx + 10, cy - 11);
+                        g.DrawLine(pen, cx + 6, cy - 14, cx + 14, cy - 6);
+                        break;
+                    case ToolbarIcon.Eraser:
+                        using (var path = new GraphicsPath())
+                        {
+                            PointF[] eraser =
+                            [
+                                new(cx - 13, cy + 4),
+                                new(cx - 3, cy - 11),
+                                new(cx + 13, cy),
+                                new(cx + 3, cy + 15)
+                            ];
+                            path.AddPolygon(eraser);
+                            g.DrawPath(pen, path);
+                            g.DrawLine(pen, cx - 4, cy + 13, cx + 12, cy + 13);
+                        }
                         break;
                     case ToolbarIcon.Mosaic:
                         for (int row = 0; row < 3; row++)
                         {
                             for (int col = 0; col < 3; col++)
                             {
-                                int shade = 180 + ((row + col) % 2) * 45;
+                                int shade = 60 + ((row + col) % 2) * 120;
                                 using var cellBrush = new SolidBrush(Color.FromArgb(shade, shade, shade));
-                                g.FillRectangle(cellBrush, cx - 9 + col * 6, cy - 9 + row * 6, 5, 5);
+                                g.FillRectangle(cellBrush, cx - 12 + col * 8, cy - 12 + row * 8, 6, 6);
                             }
                         }
                         break;
                     case ToolbarIcon.Rectangle:
-                        g.DrawRectangle(pen, cx - 9, cy - 7, 18, 14);
+                        g.DrawRectangle(pen, cx - 13, cy - 11, 26, 22);
                         break;
                     case ToolbarIcon.Circle:
-                        g.DrawEllipse(pen, cx - 9, cy - 8, 18, 16);
+                        g.DrawEllipse(pen, cx - 13, cy - 13, 26, 26);
                         break;
                     case ToolbarIcon.Color:
                         using (var colorWheel = new LinearGradientBrush(
-                            new Rectangle((int)cx - 10, (int)cy - 10, 20, 20),
+                            new Rectangle((int)cx - 13, (int)cy - 13, 26, 26),
                             Color.FromArgb(255, 70, 70),
                             Color.FromArgb(60, 145, 255),
                             LinearGradientMode.ForwardDiagonal))
                         {
-                            g.FillEllipse(colorWheel, cx - 9, cy - 9, 18, 18);
+                            g.FillEllipse(colorWheel, cx - 12, cy - 12, 24, 24);
                         }
-                        g.DrawEllipse(pen, cx - 9, cy - 9, 18, 18);
+                        g.DrawEllipse(pen, cx - 12, cy - 12, 24, 24);
                         break;
                     case ToolbarIcon.Undo:
-                        g.DrawArc(pen, cx - 9, cy - 8, 18, 16, 210, 260);
-                        g.DrawLine(pen, cx - 8, cy - 3, cx - 12, cy - 9);
-                        g.DrawLine(pen, cx - 8, cy - 3, cx - 2, cy - 5);
+                        using (var undoPen = new Pen(Color.FromArgb(170, color), 2.6f)
+                        {
+                            StartCap = LineCap.Round,
+                            EndCap = LineCap.Round,
+                            LineJoin = LineJoin.Round
+                        })
+                        {
+                            g.DrawArc(undoPen, cx - 12, cy - 10, 24, 20, 210, 260);
+                            g.DrawLine(undoPen, cx - 10, cy - 4, cx - 15, cy - 11);
+                            g.DrawLine(undoPen, cx - 10, cy - 4, cx - 3, cy - 6);
+                        }
                         break;
                     case ToolbarIcon.Redo:
-                        g.DrawArc(pen, cx - 9, cy - 8, 18, 16, -110, 260);
-                        g.DrawLine(pen, cx + 8, cy - 3, cx + 12, cy - 9);
-                        g.DrawLine(pen, cx + 8, cy - 3, cx + 2, cy - 5);
+                        g.DrawArc(pen, cx - 12, cy - 10, 24, 20, -110, 260);
+                        g.DrawLine(pen, cx + 10, cy - 4, cx + 15, cy - 11);
+                        g.DrawLine(pen, cx + 10, cy - 4, cx + 3, cy - 6);
                         break;
                     case ToolbarIcon.Save:
-                        g.DrawLine(thickPen, cx - 8, cy, cx - 2, cy + 7);
-                        g.DrawLine(thickPen, cx - 2, cy + 7, cx + 9, cy - 8);
+                        using (var savePen = new Pen(SaveAccent, 3.2f)
+                        {
+                            StartCap = LineCap.Round,
+                            EndCap = LineCap.Round,
+                            LineJoin = LineJoin.Round
+                        })
+                        {
+                            g.DrawLine(savePen, cx - 11, cy, cx - 3, cy + 9);
+                            g.DrawLine(savePen, cx - 3, cy + 9, cx + 13, cy - 11);
+                        }
                         break;
                     case ToolbarIcon.Cancel:
-                        g.DrawLine(thickPen, cx - 7, cy - 7, cx + 7, cy + 7);
-                        g.DrawLine(thickPen, cx + 7, cy - 7, cx - 7, cy + 7);
+                        using (var cancelPen = new Pen(CancelAccent, 3.2f)
+                        {
+                            StartCap = LineCap.Round,
+                            EndCap = LineCap.Round
+                        })
+                        {
+                            g.DrawLine(cancelPen, cx - 11, cy - 11, cx + 11, cy + 11);
+                            g.DrawLine(cancelPen, cx + 11, cy - 11, cx - 11, cy + 11);
+                        }
                         break;
                 }
             }

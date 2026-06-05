@@ -37,6 +37,19 @@ namespace PrintScreenApp
             _redoStack.Clear();
         }
 
+        public void SaveState(Bitmap currentImage)
+        {
+            _currentImage?.Dispose();
+            _currentImage = (Bitmap)currentImage.Clone();
+            SaveState();
+        }
+
+        public void SetCurrentImage(Bitmap currentImage)
+        {
+            _currentImage?.Dispose();
+            _currentImage = (Bitmap)currentImage.Clone();
+        }
+
         /// <summary>
         /// Undo last operation
         /// </summary>
