@@ -24,7 +24,6 @@ namespace PrintScreenApp
         private GlobalKeyboardHook? _keyboardHook;
         private NotifyIcon? _trayIcon;
         private string _registeredHotKeys = "";
-        private bool _isManuallyShowed;
         private bool _isCapturing;
 
         public Form1()
@@ -33,8 +32,6 @@ namespace PrintScreenApp
             _screenshotHelper = new ScreenshotHelper();
 
             ContextMenuStrip contextMenu = new ContextMenuStrip();
-            contextMenu.Items.Add("显示", null, (_, _) => ShowWindow());
-            contextMenu.Items.Add("隐藏", null, (_, _) => HideWindow());
             contextMenu.Items.Add("立即截图", null, (_, _) => BeginInvoke(new Action(StartRegionScreenshot)));
             contextMenu.Items.Add("-");
             contextMenu.Items.Add("设置快捷键…", null, (_, _) => OpenHotKeySettings());
@@ -49,9 +46,9 @@ namespace PrintScreenApp
                 Visible = true,
                 ContextMenuStrip = contextMenu
             };
-            _trayIcon.DoubleClick += (_, _) => ShowWindow();
+            _trayIcon.DoubleClick += (_, _) => BeginInvoke(new Action(StartRegionScreenshot));
 
-            ShowInTaskbar = true;
+            ShowInTaskbar = false;
             Opacity = 0;
             WindowState = FormWindowState.Minimized;
         }
@@ -80,10 +77,7 @@ namespace PrintScreenApp
                 value = false;
             }
 
-            if (!_isManuallyShowed)
-            {
-                value = false;
-            }
+            value = false;
 
             base.SetVisibleCore(value);
         }
@@ -107,7 +101,7 @@ namespace PrintScreenApp
             // 第二实例启动时会广播这个消息，让现有窗口显示出来
             if (m.Msg != 0 && m.Msg == (int)Program.ShowAppMessageId)
             {
-                BeginInvoke(new Action(ShowWindow));
+                BeginInvoke(new Action(StartRegionScreenshot));
             }
             else if (m.Msg == WM_HOTKEY)
             {
@@ -242,23 +236,6 @@ namespace PrintScreenApp
                 }
             }
             return false;
-        }
-
-        private void ShowWindow()
-        {
-            _isManuallyShowed = true;
-            WindowState = FormWindowState.Normal;
-            Opacity = 1;
-            Show();
-            Activate();
-            _isManuallyShowed = false;
-        }
-
-        private void HideWindow()
-        {
-            Opacity = 0;
-            WindowState = FormWindowState.Minimized;
-            Hide();
         }
 
         private void ExitApplication()

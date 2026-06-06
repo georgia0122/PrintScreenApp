@@ -36,8 +36,6 @@ namespace PrintScreenApp
             {
                 // 已经有一个实例在跑，通知它显示窗口然后退出
                 PostMessage(new IntPtr(0xFFFF) /* HWND_BROADCAST */, ShowAppMessageId, IntPtr.Zero, IntPtr.Zero);
-                MessageBox.Show("PrintScreenApp 已经在运行。\n请检查任务栏或系统托盘图标。", "PrintScreenApp",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -45,9 +43,9 @@ namespace PrintScreenApp
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
             Form1 form = new Form1();
-            // 不直接Show，让窗体在后台最小化运行
+            // Keep the hidden message window alive for hotkeys and tray actions.
             form.WindowState = FormWindowState.Minimized;
-            form.ShowInTaskbar = true;  // 在任务栏显示，方便用户恢复
+            form.ShowInTaskbar = false;
             Application.Run(form);
 
             GC.KeepAlive(mutex);
