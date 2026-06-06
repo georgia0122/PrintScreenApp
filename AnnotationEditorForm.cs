@@ -67,6 +67,7 @@ namespace PrintScreenApp
             TopMost = true;
             DoubleBuffered = true;
             StartPosition = FormStartPosition.Manual;
+            KeyPreview = true;
 
             // 在选区外拓宽边框厚度，同时限制在屏幕内
             Rectangle screen = Screen.FromRectangle(_screenBounds).Bounds;
@@ -119,7 +120,7 @@ namespace PrintScreenApp
                 Close();
             };
 
-            _toolbarKeeper = new System.Windows.Forms.Timer { Interval = 250 };
+            _toolbarKeeper = new System.Windows.Forms.Timer { Interval = 1000 };
             _toolbarKeeper.Tick += (_, _) => KeepToolbarVisible();
         }
 
@@ -127,7 +128,7 @@ namespace PrintScreenApp
         {
             base.OnShown(e);
             _toolbar.UpdatePosition(_screenBounds);
-            _toolbar.Show();
+            _toolbar.Show(this);
             _toolbarKeeper.Start();
             KeepToolbarVisible();
         }
@@ -232,7 +233,6 @@ namespace PrintScreenApp
             using Graphics g = Graphics.FromImage(_editingImage);
             _currentTool.OnMouseMove(e, g, _editingImage);
             _canvasBox.Invalidate();
-            KeepToolbarVisible();
         }
 
         private void CanvasBox_MouseUp(object? sender, MouseEventArgs e)
@@ -264,10 +264,9 @@ namespace PrintScreenApp
 
             if (!_toolbar.Visible)
             {
-                _toolbar.Show();
+                _toolbar.Show(this);
             }
 
-            _toolbar.UpdatePosition(_screenBounds);
             _toolbar.EnsureVisibleOnTop();
         }
 
@@ -286,6 +285,11 @@ namespace PrintScreenApp
                 case Keys.D7: SelectTool(_eraserTool); break;
                 case Keys.Z when e.Control: Undo(); break;
                 case Keys.Y when e.Control: Redo(); break;
+                case Keys.Enter:
+                    EditedImage = _editingImage;
+                    DialogResult = DialogResult.OK;
+                    Close();
+                    break;
                 case Keys.Escape:
                     DialogResult = DialogResult.Cancel;
                     Close();

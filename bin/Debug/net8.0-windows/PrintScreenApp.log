@@ -128,3 +128,15 @@
 2026-06-05 17:25:32.095 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x311350)
 2026-06-05 17:25:32.095 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x311350)
 2026-06-05 17:25:32.101 Keyboard hook installed: True
+2026-06-06 16:15:42.769 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x4123C)
+2026-06-06 16:15:42.785 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x4123C)
+2026-06-06 16:15:42.785 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x4123C)
+2026-06-06 16:15:42.786 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x4123C)
+2026-06-06 16:15:42.796 Keyboard hook installed: True
+2026-06-06 16:15:43.041 Keyboard hook triggered: Z
+2026-06-06 16:15:43.042 Starting region screenshot.
+2026-06-06 16:15:48.620 Region selector closed: Cancel.
+2026-06-06 16:15:51.395 Keyboard hook triggered: Z
+2026-06-06 16:15:51.396 Starting region screenshot.
+2026-06-06 16:15:55.694 Region selector closed: OK.
+2026-06-06 16:26:09.489 Annotation cancelled, screenshot discarded.
