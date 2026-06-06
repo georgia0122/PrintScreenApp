@@ -4,6 +4,17 @@ using System.Windows.Forms;
 
 namespace PrintScreenApp
 {
+    public enum AnnotationToolKind
+    {
+        Pen,
+        Arrow,
+        Mosaic,
+        Rectangle,
+        Circle,
+        Highlighter,
+        Eraser
+    }
+
     /// <summary>
     /// Interface for all annotation tools
     /// </summary>

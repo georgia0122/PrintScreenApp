@@ -140,3 +140,58 @@
 2026-06-06 16:15:51.396 Starting region screenshot.
 2026-06-06 16:15:55.694 Region selector closed: OK.
 2026-06-06 16:26:09.489 Annotation cancelled, screenshot discarded.
+2026-06-06 16:32:45.921 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x2141A)
+2026-06-06 16:32:45.955 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x2141A)
+2026-06-06 16:32:45.955 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x2141A)
+2026-06-06 16:32:45.955 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x2141A)
+2026-06-06 16:32:45.960 Keyboard hook installed: True
+2026-06-06 16:32:47.819 Keyboard hook triggered: Z
+2026-06-06 16:32:47.821 Starting region screenshot.
+2026-06-06 16:32:51.078 Region selector closed: OK.
+2026-06-06 16:34:21.188 Annotation cancelled, screenshot discarded.
+2026-06-06 16:35:48.082 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x161464)
+2026-06-06 16:35:48.096 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x161464)
+2026-06-06 16:35:48.096 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x161464)
+2026-06-06 16:35:48.097 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x161464)
+2026-06-06 16:35:48.100 Keyboard hook installed: True
+2026-06-06 16:36:06.361 Keyboard hook triggered: Z
+2026-06-06 16:36:06.362 Starting region screenshot.
+2026-06-06 16:36:11.093 Region selector closed: OK.
+2026-06-06 16:36:43.983 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0xA127A)
+2026-06-06 16:36:43.997 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0xA127A)
+2026-06-06 16:36:43.997 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0xA127A)
+2026-06-06 16:36:43.998 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0xA127A)
+2026-06-06 16:36:44.002 Keyboard hook installed: True
+2026-06-06 16:36:48.959 Keyboard hook triggered: Z
+2026-06-06 16:36:48.960 Starting region screenshot.
+2026-06-06 16:36:52.184 Region selector closed: OK.
+2026-06-06 16:38:21.393 Annotation cancelled, screenshot discarded.
+2026-06-06 16:54:41.822 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x1509A6)
+2026-06-06 16:54:41.836 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x1509A6)
+2026-06-06 16:54:41.837 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x1509A6)
+2026-06-06 16:54:41.837 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x1509A6)
+2026-06-06 16:54:41.849 Keyboard hook installed: True
+2026-06-06 17:09:43.590 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x4068E)
+2026-06-06 17:09:43.604 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x4068E)
+2026-06-06 17:09:43.604 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x4068E)
+2026-06-06 17:09:43.604 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x4068E)
+2026-06-06 17:09:43.609 Keyboard hook installed: True
+2026-06-06 17:09:44.600 Keyboard hook triggered: Z
+2026-06-06 17:09:44.602 Starting region screenshot.
+2026-06-06 17:09:47.237 Region selector closed: OK.
+2026-06-06 17:10:22.593 Annotation cancelled, screenshot discarded.
+2026-06-06 17:20:03.846 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x1513B4)
+2026-06-06 17:20:03.861 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x1513B4)
+2026-06-06 17:20:03.861 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x1513B4)
+2026-06-06 17:20:03.861 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x1513B4)
+2026-06-06 17:20:03.867 Keyboard hook installed: True
+2026-06-06 17:24:19.427 Hotkey registered: Ctrl + Alt + Z (id=45056, hWnd=0x21062E)
+2026-06-06 17:24:19.440 Hotkey registered: Ctrl + Alt + B (id=45057, hWnd=0x21062E)
+2026-06-06 17:24:19.440 Hotkey registered: Ctrl + Win + Z (id=45058, hWnd=0x21062E)
+2026-06-06 17:24:19.440 Hotkey registered: Ctrl + Win + B (id=45059, hWnd=0x21062E)
+2026-06-06 17:24:19.445 Keyboard hook installed: True
+2026-06-06 17:25:11.575 Keyboard hook triggered: Z
+2026-06-06 17:25:11.577 Starting region screenshot.
+2026-06-06 17:25:14.166 Region selector closed: OK.
+2026-06-06 17:25:31.400 Screenshot copied to clipboard.
+2026-06-06 17:25:31.424 Screenshot auto-saved to C:\Users\yoyo\Pictures\PrintScreenApp\Screenshot_20260606_172531.png.

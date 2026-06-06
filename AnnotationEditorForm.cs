@@ -1,26 +1,25 @@
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
 namespace PrintScreenApp
 {
     /// <summary>
-    /// Annotation canvas overlay with a separate floating toolbar.
+    /// Annotation canvas overlay with an embedded floating toolbar.
     /// </summary>
     public partial class AnnotationEditorForm : Form
     {
-        // 外描边宽度，让用户能看清批注区域的边界
-        private const int BorderThickness = 4;
-        private static readonly Color BorderColor = Color.FromArgb(255, 230, 50, 50);
-
         private readonly Rectangle _screenBounds;
+        private Rectangle _hostBounds;
         private Bitmap _originalImage = null!;
         private Bitmap _editingImage = null!;
         private DrawingManager _drawingManager = null!;
         private IAnnotationTool _currentTool = null!;
-        private ToolbarForm _toolbar = null!;
+        private AnnotationToolbarControl _toolbar = null!;
         private System.Windows.Forms.Timer _toolbarKeeper = null!;
         private PictureBox _canvasBox = null!;
+        private Rectangle _toolbarScreenBounds;
         private Color _currentColor = Color.Red;
         private int _currentSize = 2;
 
@@ -42,9 +41,9 @@ namespace PrintScreenApp
             _editingImage = (Bitmap)image.Clone();
             _drawingManager = new DrawingManager(image);
             InitializeTools();
+            InitializeToolbar();
             InitializeForm();
             InitializeUI();
-            InitializeToolbar();
         }
 
         private void InitializeTools()
@@ -63,17 +62,19 @@ namespace PrintScreenApp
         {
             FormBorderStyle = FormBorderStyle.None;
             ShowInTaskbar = false;
-            BackColor = BorderColor; // 表单背景充当边框
             TopMost = true;
             DoubleBuffered = true;
             StartPosition = FormStartPosition.Manual;
             KeyPreview = true;
 
-            // 在选区外拓宽边框厚度，同时限制在屏幕内
-            Rectangle screen = Screen.FromRectangle(_screenBounds).Bounds;
-            Rectangle expanded = Rectangle.Inflate(_screenBounds, BorderThickness, BorderThickness);
-            expanded.Intersect(screen);
-            Bounds = expanded;
+            _hostBounds = Screen.FromRectangle(_screenBounds).Bounds;
+            _toolbarScreenBounds = _toolbar.GetPreferredScreenBounds(_screenBounds);
+            _hostBounds = Rectangle.Union(_screenBounds, _toolbarScreenBounds);
+            _hostBounds.Inflate(6, 6);
+            Bounds = _hostBounds;
+
+            BackColor = Color.FromArgb(1, 1, 1);
+            TransparencyKey = BackColor;
         }
 
         private void InitializeUI()
@@ -83,11 +84,9 @@ namespace PrintScreenApp
                 BackColor = Color.Black,
                 SizeMode = PictureBoxSizeMode.StretchImage,
                 Image = _editingImage,
-                Location = new Point(BorderThickness, BorderThickness),
-                Size = new Size(
-                    Math.Max(1, ClientSize.Width - BorderThickness * 2),
-                    Math.Max(1, ClientSize.Height - BorderThickness * 2)),
-                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+                Location = new Point(_screenBounds.Left - _hostBounds.Left, _screenBounds.Top - _hostBounds.Top),
+                Size = new Size(Math.Max(1, _screenBounds.Width), Math.Max(1, _screenBounds.Height)),
+                Anchor = AnchorStyles.None
             };
             _canvasBox.Paint += CanvasBox_Paint;
             _canvasBox.MouseDown += CanvasBox_MouseDown;
@@ -98,7 +97,7 @@ namespace PrintScreenApp
 
         private void InitializeToolbar()
         {
-            _toolbar = new ToolbarForm();
+            _toolbar = new AnnotationToolbarControl();
             _toolbar.ToolSelected += (_, kind) => SelectTool(GetTool(kind));
             _toolbar.ColorPickRequested += (_, _) => PickColor();
             _toolbar.BrushSizeChanged += (_, size) =>
@@ -108,17 +107,8 @@ namespace PrintScreenApp
             };
             _toolbar.UndoRequested += (_, _) => Undo();
             _toolbar.RedoRequested += (_, _) => Redo();
-            _toolbar.SaveRequested += (_, _) =>
-            {
-                EditedImage = _editingImage;
-                DialogResult = DialogResult.OK;
-                Close();
-            };
-            _toolbar.CancelRequested += (_, _) =>
-            {
-                DialogResult = DialogResult.Cancel;
-                Close();
-            };
+            _toolbar.SaveRequested += (_, _) => Finish(DialogResult.OK);
+            _toolbar.CancelRequested += (_, _) => Finish(DialogResult.Cancel);
 
             _toolbarKeeper = new System.Windows.Forms.Timer { Interval = 1000 };
             _toolbarKeeper.Tick += (_, _) => KeepToolbarVisible();
@@ -127,8 +117,10 @@ namespace PrintScreenApp
         protected override void OnShown(EventArgs e)
         {
             base.OnShown(e);
-            _toolbar.UpdatePosition(_screenBounds);
-            _toolbar.Show(this);
+            Controls.Add(_toolbar);
+            _toolbar.Location = new Point(_toolbarScreenBounds.Left - _hostBounds.Left, _toolbarScreenBounds.Top - _hostBounds.Top);
+            _toolbar.Show();
+            _toolbar.BringToFront();
             _toolbarKeeper.Start();
             KeepToolbarVisible();
         }
@@ -167,7 +159,7 @@ namespace PrintScreenApp
         private void PickColor()
         {
             using ColorDialog colorDialog = new ColorDialog { Color = _currentColor };
-            if (colorDialog.ShowDialog() == DialogResult.OK)
+            if (colorDialog.ShowDialog(this) == DialogResult.OK)
             {
                 _currentColor = colorDialog.Color;
                 UpdateToolColor();
@@ -225,7 +217,6 @@ namespace PrintScreenApp
             using Graphics g = Graphics.FromImage(_editingImage);
             _currentTool.OnMouseDown(e, g, _editingImage);
             _canvasBox.Invalidate();
-            KeepToolbarVisible();
         }
 
         private void CanvasBox_MouseMove(object? sender, MouseEventArgs e)
@@ -247,6 +238,9 @@ namespace PrintScreenApp
         private void CanvasBox_Paint(object? sender, PaintEventArgs e)
         {
             _currentTool.DrawPreview(e.Graphics);
+            using var borderPen = new Pen(Color.FromArgb(255, 230, 50, 50), 3);
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            e.Graphics.DrawRectangle(borderPen, 1, 1, _canvasBox.Width - 3, _canvasBox.Height - 3);
         }
 
         protected override void OnActivated(EventArgs e)
@@ -262,12 +256,8 @@ namespace PrintScreenApp
                 return;
             }
 
-            if (!_toolbar.Visible)
-            {
-                _toolbar.Show(this);
-            }
-
-            _toolbar.EnsureVisibleOnTop();
+            if (!_toolbar.Visible) _toolbar.Visible = true;
+            _toolbar.BringToFront();
         }
 
         protected override void OnKeyDown(KeyEventArgs e)
@@ -285,23 +275,26 @@ namespace PrintScreenApp
                 case Keys.D7: SelectTool(_eraserTool); break;
                 case Keys.Z when e.Control: Undo(); break;
                 case Keys.Y when e.Control: Redo(); break;
-                case Keys.Enter:
-                    EditedImage = _editingImage;
-                    DialogResult = DialogResult.OK;
-                    Close();
-                    break;
-                case Keys.Escape:
-                    DialogResult = DialogResult.Cancel;
-                    Close();
-                    break;
+                case Keys.Enter: Finish(DialogResult.OK); break;
+                case Keys.Escape: Finish(DialogResult.Cancel); break;
             }
+        }
+
+        private void Finish(DialogResult result)
+        {
+            if (result == DialogResult.OK)
+            {
+                EditedImage = _editingImage;
+            }
+
+            DialogResult = result;
+            Close();
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             _toolbarKeeper?.Stop();
             _toolbarKeeper?.Dispose();
-            _toolbar?.Close();
             _toolbar?.Dispose();
             _drawingManager?.Dispose();
             _canvasBox?.Dispose();
