@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using Microsoft.Win32;
 
 namespace PrintScreenApp
 {
@@ -23,8 +24,11 @@ namespace PrintScreenApp
         private readonly List<int> _registeredHotKeyIds = [];
         private GlobalKeyboardHook? _keyboardHook;
         private NotifyIcon? _trayIcon;
+        private ToolStripMenuItem? _autoStartMenuItem;
         private string _registeredHotKeys = "";
         private bool _isCapturing;
+        private const string StartupRegistryKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
+        private const string StartupValueName = "PrintScreenApp";
 
         public Form1()
         {
@@ -37,6 +41,13 @@ namespace PrintScreenApp
             contextMenu.Items.Add("设置快捷键…", null, (_, _) => OpenHotKeySettings());
             contextMenu.Items.Add("-");
             contextMenu.Items.Add("退出", null, (_, _) => ExitApplication());
+            _autoStartMenuItem = new ToolStripMenuItem("Run at startup")
+            {
+                CheckOnClick = true,
+                Checked = IsAutoStartEnabled()
+            };
+            _autoStartMenuItem.CheckedChanged += AutoStartMenuItem_CheckedChanged;
+            contextMenu.Items.Insert(Math.Max(0, contextMenu.Items.Count - 1), _autoStartMenuItem);
             ContextMenuStrip = contextMenu;
 
             _trayIcon = new NotifyIcon
@@ -51,6 +62,7 @@ namespace PrintScreenApp
             ShowInTaskbar = false;
             Opacity = 0;
             WindowState = FormWindowState.Minimized;
+            EnsureAutoStartEnabled();
         }
 
         protected override CreateParams CreateParams
@@ -244,6 +256,82 @@ namespace PrintScreenApp
             {
                 Application.Exit();
             }
+        }
+
+        private void AutoStartMenuItem_CheckedChanged(object? sender, EventArgs e)
+        {
+            if (_autoStartMenuItem != null)
+            {
+                SetAutoStart(_autoStartMenuItem.Checked);
+            }
+        }
+
+        private void EnsureAutoStartEnabled()
+        {
+            if (IsAutoStartEnabled())
+            {
+                return;
+            }
+
+            SetAutoStart(true);
+            SyncAutoStartMenuItem();
+        }
+
+        private static bool IsAutoStartEnabled()
+        {
+            try
+            {
+                using RegistryKey? key = Registry.CurrentUser.OpenSubKey(StartupRegistryKey, false);
+                string? value = key?.GetValue(StartupValueName) as string;
+                return string.Equals(value, GetStartupCommand(), StringComparison.OrdinalIgnoreCase);
+            }
+            catch (Exception ex)
+            {
+                Log($"Auto-start read failed: {ex.Message}");
+                return false;
+            }
+        }
+
+        private void SetAutoStart(bool enabled)
+        {
+            try
+            {
+                using RegistryKey key = Registry.CurrentUser.CreateSubKey(StartupRegistryKey);
+                if (enabled)
+                {
+                    key.SetValue(StartupValueName, GetStartupCommand(), RegistryValueKind.String);
+                    Log("Auto-start enabled.");
+                }
+                else
+                {
+                    key.DeleteValue(StartupValueName, false);
+                    Log("Auto-start disabled.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"Auto-start update failed: {ex.Message}");
+                MessageBox.Show($"Failed to update auto-start setting: {ex.Message}", "PrintScreenApp",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                SyncAutoStartMenuItem();
+            }
+        }
+
+        private void SyncAutoStartMenuItem()
+        {
+            if (_autoStartMenuItem == null)
+            {
+                return;
+            }
+
+            _autoStartMenuItem.CheckedChanged -= AutoStartMenuItem_CheckedChanged;
+            _autoStartMenuItem.Checked = IsAutoStartEnabled();
+            _autoStartMenuItem.CheckedChanged += AutoStartMenuItem_CheckedChanged;
+        }
+
+        private static string GetStartupCommand()
+        {
+            return $"\"{Application.ExecutablePath}\"";
         }
 
         private void StartRegionScreenshot()
